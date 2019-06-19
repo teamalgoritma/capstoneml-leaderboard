@@ -1,7 +1,3 @@
----
-output: github_document
----
-
 The Score Leaderboard Machine Learning Capstone
 ===============================================
 
