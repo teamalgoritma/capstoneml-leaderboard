@@ -66,7 +66,7 @@ shinyServer(function(input, output) {
                         selectInput(
                             inputId = "projectype",
                             label = "Choose Your Project: ",
-                            choices = c("FNB", "Scotty Time Series", "Scotty Classification", "SMS", "Sentiment"), 
+                            choices = c("FNB", "Scotty Time Series", "Scotty Classification", "SMS", "Sentiment", "Concrete Prediction"), 
                             selected = "SMS"
                         ),
                         
@@ -173,7 +173,7 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    "STATUS" %in% colnames(submission()),
+                    "status" %in% colnames(submission()),
                     message = "Hm, may you choose the wrong project?"
                 )
             )
@@ -287,16 +287,78 @@ shinyServer(function(input, output) {
             
         }
         
-        else {NULL}
+        else if (input$projectype == "Scotty Time Series"){
+            
+            validate(
+                need(
+                    submission() != "",
+                    message = "Waiting your submission..."
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "demand" %in% colnames(submission()),
+                    message = "Hm, may you choose the wrong project?"
+                )
+            )
+            
+            
+            metrics <- list(outputId = c("Scottyrmse","Scottymae"), 
+                            width = c(6,6))  
+            
+            temp <- list()
+            
+            for (i in seq_len(lengths(metrics)[1])) {
+                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"), 
+                                           width = lapply(metrics[[2]][i], FUN = "print"))
+            }
+            
+            tagList(temp)   
+        }
         
+        else if (input$projectype == "Concrete Prediction"){
+            
+            validate(
+                need(
+                    submission() != "",
+                    message = "Waiting your submission..."
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "strength" %in% colnames(submission()),
+                    message = "Hm, may you choose the wrong project?"
+                )
+            )
+            
+            
+            metrics <- list(outputId = c("Concretemae","Concretersq"), 
+                            width = c(6,6))  
+            
+            temp <- list()
+            
+            for (i in seq_len(lengths(metrics)[1])) {
+                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"), 
+                                           width = lapply(metrics[[2]][i], FUN = "print"))
+            }
+            
+            tagList(temp)   
+        }
+        
+        
+        else {NULL}
     })
     
     # SMS Spam ----
     
     confMatSMS <- reactive({
         smsmetrics <- confusionMatrix(
-            submission()$STATUS %>% as.factor(),
-            read_csv("solution/sol_class_sms.csv") %$% STATUS %>% as.factor(),
+            submission()$status %>% as.factor(),
+            read_csv("solution/sol_class_sms_up.csv") %$% status %>% as.factor(),
             positive = "spam"
         )
         
@@ -305,7 +367,7 @@ shinyServer(function(input, output) {
     rubricsSMS <- reactive({
         data.frame(
             "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(83, 80, 90, 85),
+            "threshold" = c(90, 90, 90, 90),
             "prediction" = c(round(confMatSMS()$overall[1],2)*100, 
                              round(confMatSMS()$byClass[1],2)*100,
                              round(confMatSMS()$byClass[3],2)*100,
@@ -544,24 +606,18 @@ shinyServer(function(input, output) {
     metricsFNB <- reactive({
         
         # import evaluation dataset
-        evaluation <- read_csv("solution/sol_forcast_fnb.csv")
+        evaluation <- read_csv("solution/sol_forecast_fnb_new.csv")
         
         
         # check forecast performance
         eval <- evaluation %>%
+            rename(truth = visitor) %>% 
+            mutate(datetime = ymd_hms(datetime)) %>% 
             left_join(submission() %>% 
                           rename(estimate = visitor) %>% 
                           mutate(datetime = ymd_hms(datetime))) %>%
-            select(datetime, outlet, visitor, estimate) %>% 
-            mutate(
-                error = visitor - estimate
-            ) %>% 
-            select(error)
-        
-        rmse <- mean(eval$error^2, na.rm = TRUE)^0.5
-        mae <- mean(abs(eval$error), na.rm = TRUE)
-        
-        metrics <- tibble(rmse, mae)
+            summarise(mae = mae_vec(truth = truth, estimate = estimate),
+                      rmse = rmse_vec(truth = truth, estimate = estimate))
         
     })
     
@@ -598,6 +654,122 @@ shinyServer(function(input, output) {
         
     })
     
+    # Scotty Forecasting ----
+    
+    metricsScottyts <- reactive({
+        
+        # import evaluation dataset
+        evaluation <- read_csv("solution/sol_forecast_scotty.csv")
+        
+        
+        # check forecast performance
+        eval <- evaluation %>%
+            rename(truth = demand) %>% 
+            mutate(datetime = ymd_hms(datetime)) %>% 
+            left_join(submission() %>% 
+                          rename(estimate = demand) %>% 
+                          mutate(datetime = ymd_hms(datetime))) %>%
+            select(truth, estimate, src_area) %>% 
+            group_by(src_area) %>% 
+            mutate(
+                error = truth - estimate
+            ) %>% 
+            select(error)
+        
+        rmse <- mean(eval$error^2, na.rm = TRUE)^0.5
+        mae <- mean(abs(eval$error), na.rm = TRUE)
+        
+        metrics <- tibble(rmse, mae)
+        
+    })
+    
+    rubricsScottyts <- reactive({
+        data.frame(
+            "metric" = c("rmse", "mae"),
+            "threshold" = c(20, 20),
+            "prediction" = c(round(metricsScottyts()$rmse,2), 
+                             round(metricsScottyts()$mae,2))
+        )
+    })
+    
+    output$Scottyrmse <- renderInfoBox({
+        
+        if (rubricsScottyts()[1,2] >= rubricsScottyts()[1,3]) {
+            infoBox(paste(
+                round(metricsScottyts()$rmse, 2)
+            ), icon = icon("times-circle"), subtitle = "RMSE", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(metricsScottyts()$rmse, 2)
+            ), icon = icon("calendar-times"), subtitle = "RMSE", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$Scottymae <- renderInfoBox({
+        
+        infoBox(paste(
+            round(metricsScottyts()$mae, 2)
+        ), icon = icon("chart-line"), subtitle = "MAE", color = "blue", fill = TRUE)
+        
+    })
+    
+    # Concrete Prediction ----
+    
+    metricsConcretePred <- reactive({
+        
+        # import evaluation dataset
+        evaluation <- read_csv("solution/sol_rm_pred_concrete.csv")
+        
+        
+        # check forecast performance
+        eval <- evaluation %>%
+            rename(truth = strength) %>% 
+            bind_cols(submission() %>% 
+                          rename(estimate = strength) %>%
+                          select(estimate)) %>%
+            summarise(
+                mae = mae_vec(truth = truth, estimate = estimate),
+                rsq = rsq_vec(truth = truth, estimate = estimate)
+            )
+        
+    })
+    
+    rubricsConcrete <- reactive({
+        data.frame(
+            "metric" = c("mae", "rsq"),
+            "threshold" = c(10, 0.8),
+            "prediction" = c(round(metricsConcretePred()$mae,2), 
+                             round(metricsConcretePred()$rsq,2))
+        )
+    })
+    
+    output$Concretemae <- renderInfoBox({
+        
+        if (rubricsConcrete()[1,2] >= rubricsConcrete()[1,3]) {
+            infoBox(paste(
+                round(metricsConcretePred()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(metricsConcretePred()$mae, 2)
+            ), icon = icon("calendar-times"), subtitle = "MAE", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$Concretersq <- renderInfoBox({
+        
+        infoBox(paste(
+            round(metricsConcretePred()$rsq, 2)
+        ), icon = icon("chart-line"), subtitle = "R-Squared", color = "blue", fill = TRUE)
+        
+    })
+    
     # Text output ----
     
     output$text <- renderUI({
@@ -615,7 +787,7 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    "STATUS" %in% colnames(submission()),
+                    "status" %in% colnames(submission()),
                     message = ""
                 )
             )
@@ -683,6 +855,48 @@ shinyServer(function(input, output) {
             )
             
             h4(textOutput(outputId = "textScottClass"))
+            
+        }
+        
+        else if (input$projectype == "Scotty Time Series") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "demand" %in% colnames(submission()),
+                    message = ""
+                )
+            )
+            
+            h4(textOutput(outputId = "textScottyts"))
+            
+        }
+        
+        else if (input$projectype == "Concrete Prediction") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "strength" %in% colnames(submission()),
+                    message = ""
+                )
+            )
+            
+            h4(textOutput(outputId = "textConcretepred"))
             
         }
         
@@ -766,6 +980,43 @@ shinyServer(function(input, output) {
         
     })
     
+    output$textScottyts <- renderText({
+        
+        temp <- rubricsScottyts()$threshold > rubricsScottyts()$prediction
+        
+        
+        if (sum(temp) == 2) {
+            
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            
+        }
+        
+        else {
+            
+            "Oops! You did very well, but need to improve the model."
+            
+        }
+        
+    })
+    
+    output$textConcretepred <- renderText({
+        
+        
+        if (rubricsConcrete()$threshold[1] > rubricsConcrete()$prediction[1] &&
+            rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
+            
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            
+        }
+        
+        else {
+            
+            "Oops! You did very well, but need to improve the model."
+            
+        }
+        
+    })
+    
     # Leaderboard ----
     
     
@@ -810,8 +1061,8 @@ shinyServer(function(input, output) {
                 )
             )
             
-            y_pred <-  submission()$STATUS %>% as.factor()
-            y_true <-  read_csv("solution/sol_class_sms.csv") %$% STATUS %>% as.factor()
+            y_pred <-  submission()$status %>% as.factor()
+            y_true <-  read_csv("solution/sol_class_sms_up.csv") %$% status %>% as.factor()
             F1_score <- F1_Score(y_true, y_pred, positive = "spam")
             
             gs_add_row(ss = for_gs, ws = "sms", input = c(input$.username, round(F1_score,2), format(Sys.time(), "%a, %b-%d %X %Y")))
@@ -1054,6 +1305,143 @@ shinyServer(function(input, output) {
             
             
         }
+        
+        else if (input$projectype == "Scotty Time Series" & is.null(submission())) {
+            sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
+            sheet_scottyts %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(`RMSE Score`) %>% 
+                datatable(caption = 'Table 1: Leaderboard scoring | Scotty Forecasting.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}")), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_scottyts),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "130%")
+        }
+        
+        else if (input$projectype == "Scotty Time Series" & input$.username != "") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            validate(
+                need(
+                    input$.username != "",
+                    message = ""
+                )
+            )
+            
+            # withProgress(message = 'Calculation in progress',
+            #              detail = 'This may take a while...', value = 0, {
+            #                for (i in 1:20) {
+            #                  incProgress(1/20)
+            #                  Sys.sleep(0.2)
+            #                }
+            #              })
+            
+            gs_add_row(ss = for_gs, ws = "scottyts", input = c(input$.username, round(metricsScottyts()$rmse,2), format(Sys.time(), "%a, %b-%d %X %Y")))
+            sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
+            sheet_scottyts %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(`RMSE Score`) %>% 
+                datatable(caption = 'Table 1: Leaderboard scoring | Scotty Forecasting.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}")), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_scottyts),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "130%")
+            
+            
+        }
+        
+        else if (input$projectype == "Concrete Prediction" & is.null(submission())) {
+            sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
+            sheet_concreterm %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(`MAE Score`) %>% 
+                datatable(caption = 'Table 1: Leaderboard scoring | Concrete Prediction.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}")), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_concreterm),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "130%")
+        }
+        
+        else if (input$projectype == "Concrete Prediction" & input$.username != "") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            validate(
+                need(
+                    input$.username != "",
+                    message = ""
+                )
+            )
+            
+            # withProgress(message = 'Calculation in progress',
+            #              detail = 'This may take a while...', value = 0, {
+            #                for (i in 1:20) {
+            #                  incProgress(1/20)
+            #                  Sys.sleep(0.2)
+            #                }
+            #              })
+            
+            gs_add_row(ss = for_gs, ws = "concreterm", input = c(input$.username, round(metricsConcretePred()$mae,2), format(Sys.time(), "%a, %b-%d %X %Y")))
+            sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
+            sheet_concreterm %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(`MAE Score`) %>% 
+                datatable(caption = 'Table 1: Leaderboard scoring | Concrete Prediction.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}")), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_concreterm),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "130%")
+            
+            
+        }
+        
         
         else {NULL}
         
