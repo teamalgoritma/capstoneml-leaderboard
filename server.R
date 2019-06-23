@@ -1235,7 +1235,7 @@ shinyServer(function(input, output) {
     ## Leaderboard SMS Classification -----
     
     output$board <- renderDataTable({
-        if ((input$projectype == "SMS" & is.null(submission())) & input$.username == "teamalgoritma") {
+        if ((input$projectype == "SMS" & is.null(submission())) | input$.username == "teamalgoritma") {
             
             sheet_sms <- gs_read(for_gs, ws = "sms")
             
@@ -1316,7 +1316,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Scotty Classification ----
         
-        else if ((input$projectype == "Scotty Classification" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Scotty Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
             sheet_scottyclass %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1392,7 +1392,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Sentiment ----
         
-        else if ((input$projectype == "Sentiment" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Sentiment" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
             sheet_sentiment %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1468,7 +1468,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard FNB Forecasting ----
         
-        else if ((input$projectype == "FNB" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "FNB" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_fnb <- gs_read(for_gs, ws = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1540,7 +1540,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Scotty Forecasting ----
         
-        else if ((input$projectype == "Scotty Time Series" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Scotty Time Series" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
             sheet_scottyts %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1624,7 +1624,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Concrete Prediction ----
         
-        else if ((input$projectype == "Concrete Prediction" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Concrete Prediction" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1707,7 +1707,7 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Concrete Analysis ----
         
-        else if ((input$projectype == "Concrete Analysis" & is.null(submission())) & input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Concrete Analysis" & is.null(submission())) | input$.username == "teamalgoritma") {
             sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
             sheet_concreteanalysis %>% 
                 mutate(Name = str_to_title(Name)) %>% 
