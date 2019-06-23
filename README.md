@@ -9,12 +9,17 @@ Problems:
 
 3.  **SMS** : I didn’t get your message!
 
-4.  **F&B** : How much our total revenue will be?
+4.  **F&B** : It's Friday night!
 
--   The score in Classification task using `F1-measure` metric evaluation. It
-    considers both precision and recall score.
+5. **Concrete Strength Prediction** : Will it last forever?
 
--   The score in Forecasting task using `RMSE` metric evaluation.
+6. **Concrete Strength Analysis**: Can you show me your recipe?
+
+-   The score in Classification task using `Accuracy`, `Recall`, `Precision`, and `Specificity` metric evaluation.
+
+-   The score in Forecasting task using `MAE` metric evaluation.
+
+-   The score in Regression task using `MAE` and `R-Squared`
 
 Feature:
 ========
@@ -26,4 +31,4 @@ Feature:
 Next Update
 ===========
 
-1.  Updating Case studies evaluation script.
+1.  create login account for student.
