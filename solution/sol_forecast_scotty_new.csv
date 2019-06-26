@@ -1,4 +1,4 @@
-src_area,datetime,demand
+src_sub_area,datetime,demand
 sxk97,2017-12-03T00:00:00Z,25
 sxk97,2017-12-03T01:00:00Z,30
 sxk97,2017-12-03T02:00:00Z,32

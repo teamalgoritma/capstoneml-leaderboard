@@ -8,7 +8,10 @@ shinyServer(function(input, output) {
     USER <- reactiveValues(Logged = FALSE)
     
     observeEvent(input$.login, {
-        if (isTRUE(credentials[credentials$user == input$.username,1] == credentials[credentials$pass == input$.password,2])) {
+        if (isTRUE(identical(x = credentials %>% 
+                             filter(user == input$.username), y = 
+                             credentials %>% 
+                             filter(pass == input$.password)))) {
             USER$Logged <- TRUE
         } else {
             show("message")
@@ -473,9 +476,9 @@ shinyServer(function(input, output) {
     
     confMatScotClass <- reactive({
         scottclas <- confusionMatrix(
-            submission()$coverage %>% as.factor(),
+            submission()$coverage %>% factor(levels = c("insufficient", "sufficient")),
             read_csv("solution/sol_class_scotty_new.csv") %$%
-                coverage %>% as.factor()
+                coverage %>% factor(levels = c("insufficient", "sufficient"))
         )
         
     })
@@ -706,14 +709,14 @@ shinyServer(function(input, output) {
         
         # calculate error
         src_area <- data_evaluation %>%
-            group_by(src_area) %>%
+            group_by(src_sub_area) %>%
             summarise(mae = mae_vec(truth = truth, estimate = estimate)) %>%
             ungroup()
         
         all_area <- data_evaluation %>%
             summarise(mae = mae_vec(truth = truth, estimate = estimate)) %>% 
-            mutate(src_area = "all") %>% 
-            select(src_area, mae)
+            mutate(src_sub_area = "all") %>% 
+            select(src_sub_area, mae)
         
         src_area %>% bind_rows(all_area)
         
@@ -1151,12 +1154,12 @@ shinyServer(function(input, output) {
     
     output$textScottClass <- renderText({
         
-        temp <- rubricsScottyClass()$threshold < rubricsScottyClass()$prediction
+        temp <- rubricsScottyClass()$threshold <= rubricsScottyClass()$prediction
         
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
             
         }
         

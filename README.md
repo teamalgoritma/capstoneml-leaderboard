@@ -11,11 +11,12 @@ Problems:
 
 4.  **F&B** : It's Friday night!
 
-5. **Concrete Strength Prediction** : Will it last forever?
+5.  **Concrete Strength Prediction** : Will it last forever?
 
-6. **Concrete Strength Analysis**: Can you show me your recipe?
+6.  **Concrete Strength Analysis**: Can you show me your recipe?
 
--   The score in Classification task using `Accuracy`, `Recall`, `Precision`, and `Specificity` metric evaluation.
+-   The score in Classification task using `Accuracy`, `Recall`, `Precision`,
+    and `Specificity` metric evaluation.
 
 -   The score in Forecasting task using `MAE` metric evaluation.
 
@@ -30,5 +31,3 @@ Feature:
 
 Next Update
 ===========
-
-1.  create login account for student.
