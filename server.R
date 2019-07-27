@@ -8,10 +8,8 @@ shinyServer(function(input, output) {
     USER <- reactiveValues(Logged = FALSE)
     
     observeEvent(input$.login, {
-        if (isTRUE(identical(x = credentials %>% 
-                             filter(user == input$.username), y = 
-                             credentials %>% 
-                             filter(pass == input$.password)))) {
+        if (isTRUE(nrow(credentials %>% 
+                        filter(user == input$.username & pass == input$.password)) != 0)) {
             USER$Logged <- TRUE
         } else {
             show("message")
@@ -52,11 +50,10 @@ shinyServer(function(input, output) {
                         ),
                         h6("Please read the following guidance:"),
                         hr(),
-                        h6("1. Login with your account"),
-                        h6("2. Make sure you validate your model before uploading your work!"),
-                        h6("3. Submit your submission file"),
-                        h6("4. Each participant can only submit", strong(" 3 times!"), "per day"), 
-                        h6("5. If you are satisfied enough with the result, don't forget to send your report .Rmd and the submission file to",
+                        h6("1. Make sure you validate your model before uploading your work!"),
+                        h6("2. Submit your submission file"),
+                        h6("3. Each participant can only submit", strong(" 3 times!"), "per day"), 
+                        h6("4. If you are satisfied enough with the result, don't forget to send your report .Rmd and the submission file to",
                            strong("classroom")),
                         
                         hr(),
@@ -1244,7 +1241,7 @@ shinyServer(function(input, output) {
             
             sheet_sms %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1296,7 +1293,7 @@ shinyServer(function(input, output) {
             
             sheet_sms %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1323,7 +1320,7 @@ shinyServer(function(input, output) {
             sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
             sheet_scottyclass %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1372,7 +1369,7 @@ shinyServer(function(input, output) {
             sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
             sheet_scottyclass %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1399,7 +1396,7 @@ shinyServer(function(input, output) {
             sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
             sheet_sentiment %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1448,7 +1445,7 @@ shinyServer(function(input, output) {
             sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
             sheet_sentiment %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1475,7 +1472,7 @@ shinyServer(function(input, output) {
             sheet_fnb <- gs_read(for_gs, ws = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1519,7 +1516,7 @@ shinyServer(function(input, output) {
             sheet_fnb <- gs_read(for_gs, ws = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1547,7 +1544,7 @@ shinyServer(function(input, output) {
             sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
             sheet_scottyts %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1603,7 +1600,7 @@ shinyServer(function(input, output) {
             sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
             sheet_scottyts %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1631,7 +1628,7 @@ shinyServer(function(input, output) {
             sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1686,7 +1683,7 @@ shinyServer(function(input, output) {
             sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1714,7 +1711,7 @@ shinyServer(function(input, output) {
             sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
             sheet_concreteanalysis %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
@@ -1762,7 +1759,7 @@ shinyServer(function(input, output) {
             sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
             sheet_concreteanalysis %>% 
                 mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(`Last Submitted`,
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
                                                      format = "%a, %b-%d %X %Y")) %>% 
                 arrange(desc(`Last Submitted`)) %>% 
                 dplyr::filter(!duplicated(Name)) %>% 
