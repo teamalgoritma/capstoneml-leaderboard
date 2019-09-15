@@ -71,7 +71,8 @@ shinyServer(function(input, output) {
                                         "Scotty Classification", 
                                         "SMS", "Sentiment", 
                                         "Concrete Prediction",
-                                        "Concrete Analysis"), 
+                                        "Concrete Analysis",
+                                        "Airline Classification"), 
                             selected = "SMS"
                         ),
                         
@@ -134,6 +135,7 @@ shinyServer(function(input, output) {
     })
     
     submission <- reactive({
+        
         if (is.null(values$upload_state)) {
             return(NULL)
         } 
@@ -395,7 +397,7 @@ shinyServer(function(input, output) {
     rubricsSMS <- reactive({
         data.frame(
             "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(90, 90, 90, 90),
+            "threshold" = c(80, 80, 90, 85),
             "prediction" = c(round(confMatSMS()$overall[1],2)*100, 
                              round(confMatSMS()$byClass[1],2)*100,
                              round(confMatSMS()$byClass[3],2)*100,
