@@ -379,6 +379,36 @@ shinyServer(function(input, output) {
             tagList(temp)   
         }
         
+        else if (input$projectype == "Airline Classification") {
+            
+            validate(
+                need(
+                    submission() != "",
+                    message = "Waiting your submission..."
+                )
+            )
+            
+            validate(
+                need(
+                    "arr_status" %in% colnames(submission()),
+                    message = "Hm, may you choose the wrong project?"
+                )
+            )
+            
+            metrics <- list(outputId = c("Airlineacc","Airlinerecall","Airlineprec", "Airlinespec"), 
+                            width = c(6,6,6,6))  
+            
+            temp <- list()
+            
+            for (i in seq_len(lengths(metrics)[1])) {
+                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"), 
+                                           width = lapply(metrics[[2]][i], FUN = "print"))
+            }
+            
+            tagList(temp)
+            
+        }
+        
         
         else {NULL}
     })
@@ -928,6 +958,96 @@ shinyServer(function(input, output) {
         
         
     })
+    
+    # Airline Classification ----
+    
+    
+    confMatAirline <- reactive({
+        airlinemetrics <- confusionMatrix(
+            submission()$arr_status %>% as.factor(),
+            read_csv("solution/sol_class_airline.csv") %$% arr_status %>% as.factor(),
+            positive = "Delay"
+        )
+        
+    })
+    
+    rubricsAirline <- reactive({
+        data.frame(
+            "metric" = c("accuracy", "recall", "precision","specificity"),
+            "threshold" = c(75, 75, 75, 70),
+            "prediction" = c(round(confMatAirline()$overall[1],2)*100, 
+                             round(confMatAirline()$byClass[1],2)*100,
+                             round(confMatAirline()$byClass[3],2)*100,
+                             round(confMatAirline()$byClass[2],2)*100)
+        )
+        
+    })
+    
+    output$Airlineacc <- renderInfoBox({
+        
+        if (rubricsAirline()[1,2] <= rubricsAirline()[1,3]) {
+            infoBox(paste(
+                round(confMatAirline()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatAirline()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$Airlinerecall <- renderInfoBox({
+        
+        if (rubricsAirline()[2,2] <= rubricsAirline()[2,3]) {
+            infoBox(paste(
+                round(confMatAirline()$byClass[1], 2)*100, "%"
+            ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatAirline()$byClass[1], 2)*100, "%"
+            ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$Airlineprec <- renderInfoBox({
+        
+        if (rubricsAirline()[3,2] <= rubricsAirline()[3,3]) {
+            infoBox(paste(
+                round(confMatAirline()$byClass[3], 2)*100, "%"
+            ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatAirline()$byClass[3], 2)*100, "%"
+            ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$Airlinespec <- renderInfoBox({
+        
+        if (rubricsAirline()[4,2] <= rubricsAirline()[4,3]) {
+            infoBox(paste(
+                round(confMatAirline()$byClass[2], 2)*100, "%"
+            ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatAirline()$byClass[2], 2)*100, "%"
+            ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
+        }
+        
+        
+    })
+    
     
     # Text output ----
     
