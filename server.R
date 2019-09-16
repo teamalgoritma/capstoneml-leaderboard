@@ -974,7 +974,7 @@ shinyServer(function(input, output) {
     rubricsAirline <- reactive({
         data.frame(
             "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(75, 75, 75, 70),
+            "threshold" = c(75, 73, 75, 70),
             "prediction" = c(round(confMatAirline()$overall[1],2)*100, 
                              round(confMatAirline()$byClass[1],2)*100,
                              round(confMatAirline()$byClass[3],2)*100,
