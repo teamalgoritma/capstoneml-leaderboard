@@ -1202,6 +1202,27 @@ shinyServer(function(input, output) {
             
         }
         
+        else if (input$projectype == "Airline Classification") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "arr_status" %in% colnames(submission()),
+                    message = ""
+                )
+            )
+            
+            h6(textOutput(outputId = "textairline"))
+            
+        }
+        
         else (NULL)
         
     })
@@ -1215,7 +1236,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
             
         }
         
@@ -1353,8 +1374,30 @@ shinyServer(function(input, output) {
     })
     
     
+    ## Text Output Airline Classification ----
+    
+    output$textairline <- renderText({
+        
+        temp <- rubricsAirline()$threshold < rubricsAirline()$prediction
+        
+        
+        if (sum(temp) == 4) {
+            
+            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
+            
+        }
+        
+        else {
+            
+            "Oops! You did very well, but need to improve the model."
+            
+        }
+        
+    })
+    
+    
     # Leaderboard -----
-    ## Leaderboard SMS Classification -----
+    # Leaderboard SMS Classification ----
     
     output$board <- renderDataTable({
         if ((input$projectype == "SMS" & is.null(submission())) | input$.username == "teamalgoritma") {
@@ -1903,6 +1946,89 @@ shinyServer(function(input, output) {
             
         }
         
+        
+        
+        
+        ## Leaderboard Airline Classification ----
+        
+        else if ((input$projectype == "Airline Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
+            
+            sheet_airline <- gs_read(for_gs, ws = "airlineclass")
+            
+            sheet_airline %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(desc(`Accuracy`)) %>% 
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>% 
+                datatable(caption = 'Table 1: leaderboard scoring | Airline Classification Delay.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_airline),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+            
+        }
+        
+        else if (input$projectype == "Airline Classification" & input$.username != "teamalgoritma" ) {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            validate(
+                need(
+                    input$.username != "",
+                    message = ""
+                )
+            )
+            
+            gs_add_row(
+                ss = for_gs, 
+                ws = "airlineclass", 
+                input = c(input$.username, 
+                          round(confMatAirline()$overall[1],2),
+                          round(confMatAirline()$byClass[1],2),
+                          round(confMatAirline()$byClass[3],2), 
+                          round(confMatAirline()$byClass[2],2),
+                          format(Sys.time(), "%a, %b-%d %X %Y"))
+            )
+            
+            sheet_airline <- gs_read(for_gs, ws = "airlineclass")
+            
+            sheet_airline %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(desc(`Accuracy`)) %>% 
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
+                datatable(caption = 'Table 1: leaderboard scoring | Airline13 Classification Delay.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE),
+                          rownames = T) %>%
+                formatStyle(names(sheet_airline),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+            
+        } 
         
         else {NULL}
         
