@@ -903,6 +903,9 @@ shinyServer(function(input, output) {
         eval <- evaluation %>%
             rename(truth = strength) %>% 
             bind_cols(submission() %>% 
+                          mutate(id = str_remove_all(id, "S") %>% 
+                                     as.numeric()) %>% 
+                          arrange(id) %>% 
                           rename(estimate = strength) %>%
                           select(estimate)) %>%
             summarise(
@@ -963,8 +966,16 @@ shinyServer(function(input, output) {
     
     
     confMatAirline <- reactive({
+
+
+        
         airlinemetrics <- confusionMatrix(
-            submission()$arr_status %>% as.factor(),
+            submission() %>% 
+                mutate(id = str_remove_all(string = id, pattern = "F") %>% 
+                           as.numeric()) %>% 
+                arrange(id) %>% 
+                pull(arr_status) %>% 
+                as.factor(),
             read_csv("solution/sol_class_airline.csv") %$% arr_status %>% as.factor(),
             positive = "Delay"
         )
