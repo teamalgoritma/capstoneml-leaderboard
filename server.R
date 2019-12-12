@@ -1462,7 +1462,7 @@ shinyServer(function(input, output) {
                           round(confMatSMS()$byClass[1],2),
                           round(confMatSMS()$byClass[3],2), 
                           round(confMatSMS()$byClass[2],2),
-                          format(Sys.time(), "%a, %b-%d %X %Y"))
+                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
                 )
             
             sheet_sms <- gs_read(for_gs, ws = "sms")
@@ -1540,7 +1540,7 @@ shinyServer(function(input, output) {
                                  round(confMatScotClass()$byClass[1],2),
                                  round(confMatScotClass()$byClass[3],2),
                                  round(confMatScotClass()$byClass[2],2),
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             
             sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
             sheet_scottyclass %>% 
@@ -1617,7 +1617,7 @@ shinyServer(function(input, output) {
                        ws = "sentiment", 
                        input = c(input$.username, 
                                  round(F1_score,2),
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
             sheet_sentiment %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1688,7 +1688,7 @@ shinyServer(function(input, output) {
                        ws = "fnb",
                        input = c(input$.username,
                                  round(metricsFNB()$mae,2),
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             sheet_fnb <- gs_read(for_gs, ws = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1771,7 +1771,7 @@ shinyServer(function(input, output) {
                                  round(rubricsScottyts()$mae[2],2), 
                                  round(rubricsScottyts()$mae[3],2), 
                                  round(rubricsScottyts()$mae[4],2), 
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta") , "%a, %b-%d %X %Y")))
             
             sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
             sheet_scottyts %>% 
@@ -1855,7 +1855,7 @@ shinyServer(function(input, output) {
                        input = c(input$.username, 
                                  round(metricsConcretePred()$mae,2),
                                  round(metricsConcretePred()$rsq,2)*100, 
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1930,7 +1930,7 @@ shinyServer(function(input, output) {
                        input = c(input$.username, 
                                  round(metricsConcretePred()$mae,2),
                                  round(metricsConcretePred()$rsq,2)*100, 
-                                 format(Sys.time(), "%a, %b-%d %X %Y")))
+                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             
             sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
             sheet_concreteanalysis %>% 
@@ -2013,7 +2013,7 @@ shinyServer(function(input, output) {
                           round(confMatAirline()$byClass[1],2),
                           round(confMatAirline()$byClass[3],2), 
                           round(confMatAirline()$byClass[2],2),
-                          format(Sys.time(), "%a, %b-%d %X %Y"))
+                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
             )
             
             sheet_airline <- gs_read(for_gs, ws = "airlineclass")

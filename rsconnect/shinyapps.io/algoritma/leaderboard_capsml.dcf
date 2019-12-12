@@ -5,9 +5,9 @@ account: algoritma
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 993839
-bundleId: 2646457
+bundleId: 2661472
 url: https://algoritma.shinyapps.io/leaderboard_capsml/
-when: 1575637050.60606
+when: 1576144753.49549
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: README.md|img/pic1.png|img/pic2.png|img/pic3.png
