@@ -1,1 +1,4 @@
 .httr-oauth
+*.min.js
+*.min.css
+rsconnect/*.min.*
