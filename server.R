@@ -1,15 +1,19 @@
 
 shinyServer(function(input, output) {
     
-    sever(bg_color = "black")
+    sever(
+        bg_color = "black"
+    )
 
     # addClass(selector = "body", class = "sidebar-collapse")
     
     shinyURL.server()
     
     USER <- reactiveValues(Logged = FALSE)
+
     
-    observeEvent(input$.login, {
+    observeEvent({input$.login  
+        input$ENTERKeyPressed}, {
         if (isTRUE(nrow(credentials %>% 
                         filter(user == input$.username & pass == input$.password)) != 0)) {
             USER$Logged <- TRUE
@@ -23,7 +27,16 @@ shinyServer(function(input, output) {
     
     output$app = renderUI(
         if (!isTRUE(USER$Logged)) {
-            fluidRow(column(width=4, offset = 4,
+            fluidRow(
+                
+                
+                tags$script(
+                    '$(document).on("keyup", function(e) {
+            if(e.keyCode == 13){Shiny.onInputChange("ENTERKeyPressed", Math.random());}
+        });'
+                ),
+                
+                column(width=4, offset = 4,
                             wellPanel(id = "login",
                                       textInput(".username", "Username:"),
                                       passwordInput(".password", "Password:"),

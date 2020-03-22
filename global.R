@@ -20,3 +20,5 @@ list <- gs_ls()
 for_gs <- gs_key(x = "1VcxbaYM-QT1umwSlCIDNpbiWjr48AXzNRD8uWt9KElg")
 
 credentials <- gs_read(for_gs, ws = 'user')
+
+
