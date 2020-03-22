@@ -13,6 +13,7 @@ library(googlesheets)
 library(MLmetrics)
 library(shinyjs)
 library(shinyURL)
+library(sever)
 
 gs_auth(token = "token/googlesheets_token.RDS")
 list <- gs_ls()

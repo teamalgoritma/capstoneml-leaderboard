@@ -1,6 +1,9 @@
 
 shinyUI(
     fluidPage(
+        
+        use_sever(),
+        
         theme = shinytheme("cyborg"),
         # Add Javascript ----
         tags$head(
@@ -99,7 +102,13 @@ shinyUI(
         ),
         useShinyjs(),
         
-        titlePanel("Algoritma Capstone Machine Learning", windowTitle = "Algoritma Capstone Machine Learning"),
+        titlePanel(
+            "Algoritma Capstone Machine Learning",
+            tags$head(
+                tags$link(rel = "icon", type = "image/png", href = "logo_algo.png"),
+                tags$title("Algoritma Capstone Machine Learning")
+            )
+        ),
         br(),
         br(),
         

@@ -1,5 +1,7 @@
 
 shinyServer(function(input, output) {
+    
+    sever(bg_color = "black")
 
     # addClass(selector = "body", class = "sidebar-collapse")
     
@@ -69,7 +71,7 @@ shinyServer(function(input, output) {
                             choices = c("FNB", 
                                         "Scotty Time Series", 
                                         "Scotty Classification", 
-                                        "SMS", "Sentiment", 
+                                        "SMS", 
                                         "Concrete Prediction",
                                         "Concrete Analysis",
                                         "Airline Classification"), 
@@ -223,36 +225,7 @@ shinyServer(function(input, output) {
             tagList(temp)
             
         }
-        
-        else if (input$projectype == "Sentiment") {
-            
-            validate(
-                need(
-                    submission() != "",
-                    message = "Waiting your submission..."
-                )
-            )
-            
-            validate(
-                need(
-                    "label" %in% colnames(submission()),
-                    message = "Hm, may you choose the wrong project?"
-                )
-            )
-            
-            metrics <- list(outputId = c("Sentiacc","Sentirecall","Sentiprec"), 
-                            width = c(4,4,4))  
-            
-            temp <- list()
-            
-            for (i in seq_len(lengths(metrics)[1])) {
-                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"), 
-                                           width = lapply(metrics[[2]][i], FUN = "print"))
-            }
-            
-            tagList(temp)
-            
-        }
+    
         
         else if (input$projectype == "FNB") {
             
@@ -586,76 +559,6 @@ shinyServer(function(input, output) {
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
-        
-    })
-    
-    # Youtube Rewind Sentiment ----
-    
-    
-    cofMatSenti <- reactive({
-        label <- read.csv("solution/sol_class_youtube.csv")
-        metrics_multi <- metric_set(accuracy, recall, precision)
-        eval_met <-  data.frame(estimate = submission()$label, truth = label$sentiment_type) %>%
-            metrics_multi(truth = truth, estimate = estimate)
-    })
-    
-    rubricsSentiment <- reactive({
-        data.frame(
-            "metric" = c("accuracy", "recall", "precision"),
-            "threshold" = c(70, 65, 65),
-            "prediction" = c(round(cofMatSenti()$.estimate[1],2)*100, 
-                             round(cofMatSenti()$.estimate[2],2)*100,
-                             round(cofMatSenti()$.estimate[3],2)*100)
-        )
-    })
-    
-    output$Sentiacc <- renderInfoBox({
-        
-        
-        
-        if (rubricsSentiment()[1,2] <= rubricsSentiment()[1,3]) {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[1], 2)*100, "%"
-            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
-        }
-        
-        else  {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[1], 2)*100, "%"
-            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
-        }
-        
-    })
-    
-    output$Sentirecall <- renderInfoBox({
-        
-        if (rubricsSentiment()[2,2] <= rubricsSentiment()[2,3]) {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[2], 2)*100, "%"
-            ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
-        }
-        
-        else  {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[2], 2)*100, "%"
-            ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
-        }
-        
-    })
-    
-    output$Sentiprec <- renderInfoBox({
-        
-        if (rubricsSentiment()[3,2] <= rubricsSentiment()[3,3]) {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[3], 2)*100, "%"
-            ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
-        }
-        
-        else  {
-            infoBox(paste(
-                round(cofMatSenti()$.estimate[3], 2)*100, "%"
-            ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
-        }
         
     })
     
@@ -1109,26 +1012,6 @@ shinyServer(function(input, output) {
             
         }
         
-        else if (input$projectype == "Sentiment") {
-            
-            validate(
-                need(
-                    input$FileName != "",
-                    message = ""
-                )
-            )
-            
-            validate(
-                need(
-                    "sentiment" %in% colnames(submission()),
-                    message = ""
-                )
-            )
-            
-            h6(textOutput(outputId = "textSentiment"))
-            
-        } 
-        
         else if (input$projectype == "Scotty Classification") {
             
             validate(
@@ -1269,27 +1152,6 @@ shinyServer(function(input, output) {
         if (sum(temp) == 1) {
             
             paste("Congratulation", input$.username, ", you get full (4 points) on Evaluation Dataset!")
-            
-        }
-        
-        else {
-            
-            "Oops! You did very well, but need to improve the model."
-            
-        }
-        
-    })
-    
-    ## Text Output Sentiment ----
-    
-    output$textSentiment <- renderText({
-        
-        temp <- rubricsSentiment()$threshold < rubricsSentiment()$prediction
-        
-        
-        if (sum(temp) == 3) {
-            
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1559,82 +1421,6 @@ shinyServer(function(input, output) {
                                              "}"), scrollX = TRUE), 
                           rownames = T) %>% 
                 formatStyle(names(sheet_scottyclass),
-                            backgroundColor = "black",
-                            background = "black",
-                            target = "row",
-                            fontSize = "100%")
-            
-        }
-        
-        ## Leaderboard Sentiment ----
-        
-        else if ((input$projectype == "Sentiment" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
-            sheet_sentiment %>% 
-                mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
-                                                     format = "%a, %b-%d %X %Y")) %>% 
-                arrange(desc(`Last Submitted`)) %>% 
-                dplyr::filter(!duplicated(Name)) %>% 
-                dplyr::arrange(desc(`F1-Score`)) %>% 
-                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
-                datatable(caption = 'Table 1: leaderboard scoring | Classification Sentiment #YoutubeRewind2018.',
-                          options = list(dom = "t",
-                                         initComplete = JS(
-                                             "function(settings, json) {",
-                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                                             "}"), scrollX = TRUE), 
-                          rownames = T) %>% 
-                formatStyle(names(sheet_sentiment),
-                            backgroundColor = "black",
-                            background = "black",
-                            target = "row",
-                            fontSize = "100%")
-        }
-        
-        else if (input$projectype == "Sentiment" & input$.username != "teamalgoritma") {
-            
-            validate(
-                need(
-                    input$FileName != "",
-                    message = ""
-                )
-            )
-            
-            validate(
-                need(
-                    input$.username != "",
-                    message = ""
-                )
-            )
-        
-            y_pred <-  submission()$sentiment
-            label <- read.csv("solution/sol_class_youtube.csv")
-            y_true <-  label$sentiment_type
-            F1_score <- F1_Score(y_true, y_pred)
-            
-            gs_add_row(ss = for_gs, 
-                       ws = "sentiment", 
-                       input = c(input$.username, 
-                                 round(F1_score,2),
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
-            sheet_sentiment <- gs_read(for_gs, ws = "sentiment")
-            sheet_sentiment %>% 
-                mutate(Name = str_to_title(Name)) %>% 
-                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
-                                                     format = "%a, %b-%d %X %Y")) %>% 
-                arrange(desc(`Last Submitted`)) %>% 
-                dplyr::filter(!duplicated(Name)) %>% 
-                dplyr::arrange(desc(`F1-Score`)) %>% 
-                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
-                datatable(caption = 'Table 1: leaderboard scoring | Classification Sentiment #YoutubeRewind2018.',
-                          options = list(dom = "t",
-                                         initComplete = JS(
-                                             "function(settings, json) {",
-                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                                             "}"), scrollX = TRUE), 
-                          rownames = T) %>% 
-                formatStyle(names(sheet_sentiment),
                             backgroundColor = "black",
                             background = "black",
                             target = "row",
