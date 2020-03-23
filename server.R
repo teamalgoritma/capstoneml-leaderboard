@@ -1143,7 +1143,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1159,12 +1159,12 @@ shinyServer(function(input, output) {
     
     output$textFNB <- renderText({
         
-        temp <- rubricsFNB()$threshold > rubricsFNB()$prediction
+        temp <- rubricsFNB()$threshold[2] > rubricsFNB()$prediction[2]
         
         
         if (sum(temp) == 1) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Evaluation Dataset!")
+            paste("Congratulation", input$.username, ", you get full (6 points) on Evaluation Dataset!")
             
         }
         
@@ -1185,7 +1185,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1205,7 +1205,7 @@ shinyServer(function(input, output) {
         if (rubricsConcrete()$threshold[1] > rubricsConcrete()$prediction[1] &&
             rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (6 points) on Model Evaluation!")
             
         }
         
@@ -1226,7 +1226,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Evaluation Dataset!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Evaluation Dataset!")
             
         }
         
@@ -1247,7 +1247,7 @@ shinyServer(function(input, output) {
         if (rubricsConcreteAnalysis()$threshold[1] > rubricsConcreteAnalysis()$prediction[1] &&
             rubricsConcreteAnalysis()$threshold[2] < rubricsConcreteAnalysis()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (2) points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (4) points) on Model Evaluation!")
             
         }
         
@@ -1269,7 +1269,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (4 points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
