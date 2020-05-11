@@ -411,14 +411,18 @@ shinyServer(function(input, output) {
     })
     
     rubricsSMS <- reactive({
-        data.frame(
-            "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(80, 80, 90, 85),
-            "prediction" = c(round(confMatSMS()$overall[1],2)*100, 
-                             round(confMatSMS()$byClass[1],2)*100,
-                             round(confMatSMS()$byClass[3],2)*100,
-                             round(confMatSMS()$byClass[2],2)*100)
-        )
+        
+        gs_read(for_gs, ws = "rubrics-sms") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(confMatSMS()$overall[1],2)*100, 
+                                     round(confMatSMS()$byClass[1],2)*100,
+                                     round(confMatSMS()$byClass[3],2)*100,
+                                     round(confMatSMS()$byClass[2],2)*100)
+                ) 
+            )
+        
+
         
     })
     
@@ -499,14 +503,17 @@ shinyServer(function(input, output) {
     })
     
     rubricsScottyClass <- reactive({
-        data.frame(
-            "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(75, 85, 70, 75),
-            "prediction" = c(round(confMatScotClass()$overall[1],2)*100, 
-                             round(confMatScotClass()$byClass[1],2)*100,
-                             round(confMatScotClass()$byClass[3],2)*100,
-                             round(confMatScotClass()$byClass[2],2)*100)
-        )
+        
+        gs_read(for_gs, ws = "rubrics-scottyclass") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(confMatScotClass()$overall[1],2)*100, 
+                                     round(confMatScotClass()$byClass[1],2)*100,
+                                     round(confMatScotClass()$byClass[3],2)*100,
+                                     round(confMatScotClass()$byClass[2],2)*100)
+                )
+            )
+
     })
     
     output$ScottClassacc <- renderInfoBox({
@@ -596,12 +603,15 @@ shinyServer(function(input, output) {
     })
     
     rubricsFNB<- reactive({
-        data.frame(
-            "metric" = c("rmse", "mae"),
-            "threshold" = c(0, 6),
-            "prediction" = c(round(metricsFNB()$rmse,2), 
-                             round(metricsFNB()$mae,2))
-        )
+        
+        gs_read(for_gs, ws = "rubrics-fnb") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(metricsFNB()$rmse,2), 
+                                     round(metricsFNB()$mae,2))
+                ) 
+            )
+
     })
     
     output$FNBrmse <- renderInfoBox({
@@ -670,7 +680,10 @@ shinyServer(function(input, output) {
     rubricsScottyts <- reactive({
         
         metricsScottyts() %>% 
-            bind_cols("threshold" = c(12,11,10,11))
+            data.frame(
+                gs_read(for_gs, ws = "rubrics-sms") %>% 
+                    select(threshold)
+            )
         
     })
     
@@ -761,12 +774,16 @@ shinyServer(function(input, output) {
     })
     
     rubricsConcrete <- reactive({
-        data.frame(
-            "metric" = c("mae", "rsq"),
-            "threshold" = c(4, 90),
-            "prediction" = c(round(metricsConcretePred()$mae,2), 
-                             round(metricsConcretePred()$rsq,2)*100)
-        )
+        
+        gs_read(for_gs, ws = "rubrics-concretepred") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(metricsConcretePred()$mae,2), 
+                                     round(metricsConcretePred()$rsq,2)*100)
+                )
+            )
+            
+
     })
     
     output$Concretemae <- renderInfoBox({
@@ -832,12 +849,16 @@ shinyServer(function(input, output) {
     })
     
     rubricsConcreteAnalysis <- reactive({
-        data.frame(
-            "metric" = c("mae", "rsq"),
-            "threshold" = c(7.5, 65),
-            "prediction" = c(round(metricsConcreteAnalysis()$mae,2), 
-                             round(metricsConcreteAnalysis()$rsq,2)*100)
-        )
+        
+        gs_read(for_gs, ws = "rubrics-concreteanalysis") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(metricsConcreteAnalysis()$mae,2), 
+                                     round(metricsConcreteAnalysis()$rsq,2)*100)
+                )
+            )
+        
+
     })
     
     output$ConcreteAnalysismae <- renderInfoBox({
@@ -899,14 +920,17 @@ shinyServer(function(input, output) {
     })
     
     rubricsAirline <- reactive({
-        data.frame(
-            "metric" = c("accuracy", "recall", "precision","specificity"),
-            "threshold" = c(75, 73, 75, 70),
-            "prediction" = c(round(confMatAirline()$overall[1],2)*100, 
-                             round(confMatAirline()$byClass[1],2)*100,
-                             round(confMatAirline()$byClass[3],2)*100,
-                             round(confMatAirline()$byClass[2],2)*100)
-        )
+        
+        gs_read(for_gs, ws = "rubrics-airline") %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(confMatAirline()$overall[1],2)*100, 
+                                     round(confMatAirline()$byClass[1],2)*100,
+                                     round(confMatAirline()$byClass[3],2)*100,
+                                     round(confMatAirline()$byClass[2],2)*100)
+                )
+            )
+
         
     })
     
