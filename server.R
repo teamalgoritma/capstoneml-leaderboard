@@ -428,15 +428,15 @@ shinyServer(function(input, output) {
     
     output$SMSacc <- renderInfoBox({
         
-        if (rubricsSMS()[1,2] <= rubricsSMS()[1,3]) {
+        if (rubricsSMS()[1,2] <= rubricsSMS()[1,4]) {
             infoBox(paste(
-                round(confMatSMS()$overall[1], 2)*100, "%"
+                rubricsSMS()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatSMS()$overall[1], 2)*100, "%"
+                rubricsSMS()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -444,15 +444,15 @@ shinyServer(function(input, output) {
     
     output$SMSrecall <- renderInfoBox({
         
-        if (rubricsSMS()[2,2] <= rubricsSMS()[2,3]) {
+        if (rubricsSMS()[2,2] <= rubricsSMS()[2,4]) {
             infoBox(paste(
-                round(confMatSMS()$byClass[1], 2)*100, "%"
+                rubricsSMS()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatSMS()$byClass[1], 2)*100, "%"
+                rubricsSMS()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -460,15 +460,15 @@ shinyServer(function(input, output) {
     
     output$SMSprec <- renderInfoBox({
         
-        if (rubricsSMS()[3,2] <= rubricsSMS()[3,3]) {
+        if (rubricsSMS()[3,2] <= rubricsSMS()[3,4]) {
             infoBox(paste(
-                round(confMatSMS()$byClass[3], 2)*100, "%"
+                rubricsSMS()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatSMS()$byClass[3], 2)*100, "%"
+                rubricsSMS()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -476,15 +476,15 @@ shinyServer(function(input, output) {
     
     output$SMSspec <- renderInfoBox({
         
-        if (rubricsSMS()[4,2] <= rubricsSMS()[4,3]) {
+        if (rubricsSMS()[4,2] <= rubricsSMS()[4,4]) {
             infoBox(paste(
-                round(confMatSMS()$byClass[2], 2)*100, "%"
+                rubricsSMS()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatSMS()$byClass[2], 2)*100, "%"
+                rubricsSMS()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -519,15 +519,15 @@ shinyServer(function(input, output) {
     output$ScottClassacc <- renderInfoBox({
         
         
-        if (rubricsScottyClass()[1,2] <= rubricsScottyClass()[1,3]) {
+        if (rubricsScottyClass()[1,2] <= rubricsScottyClass()[1,4]) {
             infoBox(paste(
-                round(confMatScotClass()$overall[1], 2)*100, "%"
+                rubricsScottyClass()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatScotClass()$overall[1], 2)*100, "%"
+                rubricsScottyClass()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -535,15 +535,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassrecall <- renderInfoBox({
         
-        if (rubricsScottyClass()[2,2] <= rubricsScottyClass()[2,3]) {
+        if (rubricsScottyClass()[2,2] <= rubricsScottyClass()[2,4]) {
             infoBox(paste(
-                round(confMatScotClass()$byClass[1], 2)*100, "%"
+                rubricsScottyClass()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatScotClass()$byClass[1], 2)*100, "%"
+                rubricsScottyClass()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -551,15 +551,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassprec <- renderInfoBox({
         
-        if (rubricsScottyClass()[3,2] <= rubricsScottyClass()[3,3]) {
+        if (rubricsScottyClass()[3,2] <= rubricsScottyClass()[3,4]) {
             infoBox(paste(
-                round(confMatScotClass()$byClass[3], 2)*100, "%"
+                rubricsScottyClass()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatScotClass()$byClass[3], 2)*100, "%"
+                rubricsScottyClass()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -567,15 +567,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassspec <- renderInfoBox({
         
-        if (rubricsScottyClass()[4,2] <= rubricsScottyClass()[4,3]) {
+        if (rubricsScottyClass()[4,2] <= rubricsScottyClass()[4,4]) {
             infoBox(paste(
-                round(confMatScotClass()$byClass[2], 2)*100, "%"
+                rubricsScottyClass()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatScotClass()$byClass[2], 2)*100, "%"
+                rubricsScottyClass()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -616,15 +616,15 @@ shinyServer(function(input, output) {
     
     output$FNBrmse <- renderInfoBox({
         
-        if (rubricsFNB()[2,2] >= rubricsFNB()[2,3]) {
+        if (rubricsFNB()[2,2] >= rubricsFNB()[2,4]) {
             infoBox(paste(
-                round(metricsFNB()$mae, 2)
+                rubricsFNB()[2,4]
             ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(metricsFNB()$mae, 2)
+                rubricsFNB()[2,4]
             ), icon = icon("calendar-times"), subtitle = "MAE", color = "red", fill = TRUE)
         }
         
@@ -633,7 +633,7 @@ shinyServer(function(input, output) {
     output$FNBmae <- renderInfoBox({
         
         infoBox(paste(
-            round(metricsFNB()$rmse, 2)
+            rubricsFNB()[1,4]
         ), icon = icon("calendar-times"), subtitle = "RMSE", color = "green", fill = TRUE)
         
     })
@@ -681,8 +681,8 @@ shinyServer(function(input, output) {
         
         metricsScottyts() %>% 
             data.frame(
-                gs_read(for_gs, ws = "rubrics-sms") %>% 
-                    select(threshold)
+                gs_read(for_gs, ws = "rubrics-scottyts") %>% 
+                    select(threshold, point)
             )
         
     })
@@ -788,26 +788,32 @@ shinyServer(function(input, output) {
     
     output$Concretemae <- renderInfoBox({
         
-        if (rubricsConcrete()[1,2] >= rubricsConcrete()[1,3]) {
-            infoBox(paste(
-                round(metricsConcretePred()$mae, 2)
-            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
+        if (rubricsConcrete()[1,2] >= rubricsConcrete()[1,4]) {
+            infoBox(
+                rubricsConcrete()[1,4], 
+                icon = icon("times-circle"),
+                subtitle = "MAE",
+                color = "green", 
+                fill = TRUE)
         }
         
         else  {
-            infoBox(paste(
-                round(metricsConcretePred()$mae, 2)
-            ), icon = icon("times-circle"), subtitle = "MAE", color = "red", fill = TRUE)
+            infoBox(
+                rubricsConcrete()[1,4], 
+                icon = icon("times-circle"),
+                subtitle = "MAE", 
+                color = "red", 
+                fill = TRUE)
         }
         
     })
     
     output$Concretersq <- renderInfoBox({
         
-        if (rubricsConcrete()[2,2] < rubricsConcrete()[2,3]) {
+        if (rubricsConcrete()[2,2] < rubricsConcrete()[2,4]) {
             
             infoBox(paste(
-                round(metricsConcretePred()$rsq,2)*100, "%"
+                rubricsConcrete()[2,4], "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "green", fill = TRUE)
             
         }
@@ -815,7 +821,7 @@ shinyServer(function(input, output) {
         else {
             
             infoBox(paste(
-                round(metricsConcretePred()$rsq,2)*100, "%"
+                rubricsConcrete()[2,4], "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "red", fill = TRUE)
             
         }
@@ -863,26 +869,30 @@ shinyServer(function(input, output) {
     
     output$ConcreteAnalysismae <- renderInfoBox({
         
-        if (rubricsConcreteAnalysis()[1,2] >= rubricsConcreteAnalysis()[1,3]) {
-            infoBox(paste(
-                round(metricsConcreteAnalysis()$mae, 2)
-            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
+        if (rubricsConcreteAnalysis()[1,2] >= rubricsConcreteAnalysis()[1,4]) {
+            infoBox(
+                rubricsConcreteAnalysis()[1,4]
+                , icon = icon("times-circle"), 
+                subtitle = "MAE", 
+                color = "green", fill = TRUE)
         }
         
         else  {
-            infoBox(paste(
-                round(metricsConcreteAnalysis()$mae, 2)
-            ), icon = icon("times-circle"), subtitle = "MAE", color = "red", fill = TRUE)
+            infoBox(
+                rubricsConcreteAnalysis()[1,4],
+                icon = icon("times-circle"),
+                subtitle = "MAE",
+                color = "red", fill = TRUE)
         }
         
     })
     
     output$ConcreteAnalysisrsq <- renderInfoBox({
         
-        if (rubricsConcreteAnalysis()[2,2] < rubricsConcreteAnalysis()[2,3]) {
+        if (rubricsConcreteAnalysis()[2,2] < rubricsConcreteAnalysis()[2,4]) {
             
             infoBox(paste(
-                round(metricsConcreteAnalysis()$rsq,2)*100, "%"
+                rubricsConcreteAnalysis()[2,4], "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "green", fill = TRUE)
             
         }
@@ -890,7 +900,7 @@ shinyServer(function(input, output) {
         else {
             
             infoBox(paste(
-                round(metricsConcreteAnalysis()$rsq,2)*100, "%"
+                rubricsConcreteAnalysis()[2,4], "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "red", fill = TRUE)
             
         }
@@ -936,15 +946,15 @@ shinyServer(function(input, output) {
     
     output$Airlineacc <- renderInfoBox({
         
-        if (rubricsAirline()[1,2] <= rubricsAirline()[1,3]) {
+        if (rubricsAirline()[1,2] <= rubricsAirline()[1,4]) {
             infoBox(paste(
-                round(confMatAirline()$overall[1], 2)*100, "%"
+                rubricsAirline()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatAirline()$overall[1], 2)*100, "%"
+                rubricsAirline()[1,4], "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -952,15 +962,15 @@ shinyServer(function(input, output) {
     
     output$Airlinerecall <- renderInfoBox({
         
-        if (rubricsAirline()[2,2] <= rubricsAirline()[2,3]) {
+        if (rubricsAirline()[2,2] <= rubricsAirline()[2,4]) {
             infoBox(paste(
-                round(confMatAirline()$byClass[1], 2)*100, "%"
+                rubricsAirline()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatAirline()$byClass[1], 2)*100, "%"
+                rubricsAirline()[2,4], "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -968,15 +978,15 @@ shinyServer(function(input, output) {
     
     output$Airlineprec <- renderInfoBox({
         
-        if (rubricsAirline()[3,2] <= rubricsAirline()[3,3]) {
+        if (rubricsAirline()[3,2] <= rubricsAirline()[3,4]) {
             infoBox(paste(
-                round(confMatAirline()$byClass[3], 2)*100, "%"
+                rubricsAirline()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatAirline()$byClass[3], 2)*100, "%"
+                rubricsAirline()[3,4], "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -984,15 +994,15 @@ shinyServer(function(input, output) {
     
     output$Airlinespec <- renderInfoBox({
         
-        if (rubricsAirline()[4,2] <= rubricsAirline()[4,3]) {
+        if (rubricsAirline()[4,2] <= rubricsAirline()[4,4]) {
             infoBox(paste(
-                round(confMatAirline()$byClass[2], 2)*100, "%"
+                rubricsAirline()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                round(confMatAirline()$byClass[2], 2)*100, "%"
+                rubricsAirline()[4,4], "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -1164,10 +1174,11 @@ shinyServer(function(input, output) {
         
         temp <- rubricsSMS()$threshold < rubricsSMS()$prediction
         
+        total_point <- rubricsSMS()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1185,10 +1196,11 @@ shinyServer(function(input, output) {
         
         temp <- rubricsFNB()$threshold[2] > rubricsFNB()$prediction[2]
         
+        total_point <- rubricsFNB()$point %>% sum()
         
         if (sum(temp) == 1) {
             
-            paste("Congratulation", input$.username, ", you get full (6 points) on Evaluation Dataset!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1206,10 +1218,11 @@ shinyServer(function(input, output) {
         
         temp <- rubricsScottyClass()$threshold <= rubricsScottyClass()$prediction
         
+        total_point <- rubricsScottyClass()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1226,10 +1239,12 @@ shinyServer(function(input, output) {
     output$textConcretepred <- renderText({
         
         
+        total_point <- rubricsConcrete()$point %>% sum()
+        
         if (rubricsConcrete()$threshold[1] > rubricsConcrete()$prediction[1] &&
             rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (6 points) on Model Evaluation!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1247,10 +1262,11 @@ shinyServer(function(input, output) {
 
         temp <- rubricsScottyts()$threshold > rubricsScottyts()$mae
         
+        total_point <- rubricsScottyts()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Evaluation Dataset!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1267,11 +1283,12 @@ shinyServer(function(input, output) {
     
     output$textConcreteAnalysis <- renderText({
         
+        total_point <- rubricsConcreteAnalysis()$point %>% sum()
         
         if (rubricsConcreteAnalysis()$threshold[1] > rubricsConcreteAnalysis()$prediction[1] &&
             rubricsConcreteAnalysis()$threshold[2] < rubricsConcreteAnalysis()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (4) points) on Model Evaluation!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
@@ -1290,10 +1307,11 @@ shinyServer(function(input, output) {
         
         temp <- rubricsAirline()$threshold < rubricsAirline()$prediction
         
+        total_point <- rubricsAirline()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
             
         }
         
