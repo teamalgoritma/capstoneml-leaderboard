@@ -1,6 +1,8 @@
 The Score Leaderboard Machine Learning Capstone
 ===============================================
 
+This repository about dashboard scoring for machine learning capstone project in [Algoritma Data Science Academy](https://algorit.ma/data-science-academy/). After the student finish modelling and evaluation step, they need to check the model performance on data testing by upload the submission file to this dashboard.
+
 Problems:
 
 1.  **Scotty** : Forecast Hourly Demands for Scotty.
@@ -17,7 +19,6 @@ Problems:
 
 7.  **Airline13 (Flight Delay)**: The late list..
 
- 
 
 -   The score in Classification task using `Accuracy`, `Recall`, `Precision`,
     and `Specificity` metric evaluation.
@@ -33,5 +34,4 @@ Feature:
 
 ![](img/pic1.png)
 
-Next Update
-===========
+
