@@ -4,25 +4,24 @@ shinyServer(function(input, output) {
     sever(
         bg_color = "black"
     )
-
+    
     # addClass(selector = "body", class = "sidebar-collapse")
     
     shinyURL.server()
     
     USER <- reactiveValues(Logged = FALSE)
-
     
     observeEvent({input$.login  
         input$ENTERKeyPressed}, {
-        if (isTRUE(nrow(credentials %>% 
-                        filter(user == input$.username & pass == input$.password)) != 0)) {
-            USER$Logged <- TRUE
-        } else {
-            show("message")
-            output$message = renderText("Invalid user name or password")
-            delay(2000, hide("message", anim = TRUE, animType = "fade"))
+            if (isTRUE(nrow(credentials %>% 
+                            filter(user == input$.username & pass == input$.password)) != 0)) {
+                USER$Logged <- TRUE
+            } else {
+                show("message")
+                output$message = renderText("Invalid user name or password")
+                delay(2000, hide("message", anim = TRUE, animType = "fade"))
+            }
         }
-    }
     )
     
     output$app = renderUI(
@@ -37,13 +36,13 @@ shinyServer(function(input, output) {
                 ),
                 
                 column(width=4, offset = 4,
-                            wellPanel(id = "login",
-                                      textInput(".username", "Username:"),
-                                      passwordInput(".password", "Password:"),
-                                      div(actionButton(".login", "Log in"), style="text-align: center;")
-                            ),
-                            textOutput("message")
-            ))
+                       wellPanel(id = "login",
+                                 textInput(".username", "Username:"),
+                                 passwordInput(".password", "Password:"),
+                                 div(actionButton(".login", "Log in"), style="text-align: center;")
+                       ),
+                       textOutput("message")
+                ))
         } else {
             
             fluidPage(
@@ -87,7 +86,9 @@ shinyServer(function(input, output) {
                                         "SMS", 
                                         "Concrete Prediction",
                                         "Concrete Analysis",
-                                        "Airline Classification"), 
+                                        "Airline Classification", 
+                                        "Image Classification"
+                            ), 
                             selected = "SMS"
                         ),
                         
@@ -112,7 +113,12 @@ shinyServer(function(input, output) {
                         h6("The", "green value box", "means you success to achive the metrics, The red are otherwise."),
                         hr(),
                         uiOutput(outputId = "metric"),
-                        uiOutput(outputId = "text")
+                        uiOutput(outputId = "text"),
+                        dataTableOutput(outputId = "confadd")
+                        
+                        # if (input$projectype == "Image Classification"){
+                        #     dataTableOutput(outputId = "addconf")
+                        # }
                     ),
                     
                     # Third box, leaderboard score ----
@@ -133,7 +139,6 @@ shinyServer(function(input, output) {
             )
         }
     )
-    
     
     # Submission reactivity ----
     
@@ -238,7 +243,7 @@ shinyServer(function(input, output) {
             tagList(temp)
             
         }
-    
+        
         
         else if (input$projectype == "FNB") {
             
@@ -395,6 +400,38 @@ shinyServer(function(input, output) {
             
         }
         
+        else if (input$projectype == "Image Classification") {
+            
+            validate(
+                need(
+                    submission() != "",
+                    message = "Waiting your submission..."
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "label" %in% colnames(submission()),
+                    message = "Hm, may you choose the wrong project?"
+                )
+            )
+            
+            
+            metrics <- list(outputId = c("IMGacc","IMGrecall","IMGprec","IMGspec"),
+                            width = c(6,6,6,6))
+            
+            temp <- list()
+            
+            for (i in seq_len(lengths(metrics)[1])) {
+                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"),
+                                           width = lapply(metrics[[2]][i], FUN = "print"))
+            }
+            
+            tagList(temp)
+            
+        }
+        
         
         else {NULL}
     })
@@ -422,21 +459,21 @@ shinyServer(function(input, output) {
                 ) 
             )
         
-
+        
         
     })
     
     output$SMSacc <- renderInfoBox({
         
-        if (rubricsSMS()[1,2] <= rubricsSMS()[1,4]) {
+        if (rubricsSMS()$threshold[1] <= rubricsSMS()$prediction[1]) {
             infoBox(paste(
-                rubricsSMS()[1,4], "%"
+                round(confMatSMS()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsSMS()[1,4], "%"
+                round(confMatSMS()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -444,15 +481,15 @@ shinyServer(function(input, output) {
     
     output$SMSrecall <- renderInfoBox({
         
-        if (rubricsSMS()[2,2] <= rubricsSMS()[2,4]) {
+        if (rubricsSMS()$threshold[2] <= rubricsSMS()$prediction[2]) {
             infoBox(paste(
-                rubricsSMS()[2,4], "%"
+                round(confMatSMS()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsSMS()[2,4], "%"
+                round(confMatSMS()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -460,15 +497,15 @@ shinyServer(function(input, output) {
     
     output$SMSprec <- renderInfoBox({
         
-        if (rubricsSMS()[3,2] <= rubricsSMS()[3,4]) {
+        if (rubricsSMS()$threshold[3] <= rubricsSMS()$prediction[3]) {
             infoBox(paste(
-                rubricsSMS()[3,4], "%"
+                round(confMatSMS()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsSMS()[3,4], "%"
+                round(confMatSMS()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -476,15 +513,15 @@ shinyServer(function(input, output) {
     
     output$SMSspec <- renderInfoBox({
         
-        if (rubricsSMS()[4,2] <= rubricsSMS()[4,4]) {
+        if (rubricsSMS()$threshold[4] <= rubricsSMS()$prediction[4]) {
             infoBox(paste(
-                rubricsSMS()[4,4], "%"
+                round(confMatSMS()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsSMS()[4,4], "%"
+                round(confMatSMS()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -513,21 +550,21 @@ shinyServer(function(input, output) {
                                      round(confMatScotClass()$byClass[2],2)*100)
                 )
             )
-
+        
     })
     
     output$ScottClassacc <- renderInfoBox({
         
         
-        if (rubricsScottyClass()[1,2] <= rubricsScottyClass()[1,4]) {
+        if (rubricsScottyClass()$threshold[1] <= rubricsScottyClass()$prediction[1]) {
             infoBox(paste(
-                rubricsScottyClass()[1,4], "%"
+                round(confMatScotClass()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsScottyClass()[1,4], "%"
+                round(confMatScotClass()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -535,15 +572,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassrecall <- renderInfoBox({
         
-        if (rubricsScottyClass()[2,2] <= rubricsScottyClass()[2,4]) {
+        if (rubricsScottyClass()$threshold[2] <= rubricsScottyClass()$prediction[2]) {
             infoBox(paste(
-                rubricsScottyClass()[2,4], "%"
+                round(confMatScotClass()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsScottyClass()[2,4], "%"
+                round(confMatScotClass()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -551,15 +588,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassprec <- renderInfoBox({
         
-        if (rubricsScottyClass()[3,2] <= rubricsScottyClass()[3,4]) {
+        if (rubricsScottyClass()$threshold[3] <= rubricsScottyClass()$prediction[3]) {
             infoBox(paste(
-                rubricsScottyClass()[3,4], "%"
+                round(confMatScotClass()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsScottyClass()[3,4], "%"
+                round(confMatScotClass()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -567,15 +604,15 @@ shinyServer(function(input, output) {
     
     output$ScottClassspec <- renderInfoBox({
         
-        if (rubricsScottyClass()[4,2] <= rubricsScottyClass()[4,4]) {
+        if (rubricsScottyClass()$threshold[4] <= rubricsScottyClass()$prediction[4]) {
             infoBox(paste(
-                rubricsScottyClass()[4,4], "%"
+                round(confMatScotClass()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsScottyClass()[4,4], "%"
+                round(confMatScotClass()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -611,29 +648,29 @@ shinyServer(function(input, output) {
                                      round(metricsFNB()$mae,2))
                 ) 
             )
-
-    })
-    
-    output$FNBrmse <- renderInfoBox({
-        
-        if (rubricsFNB()[2,2] >= rubricsFNB()[2,4]) {
-            infoBox(paste(
-                rubricsFNB()[2,4]
-            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
-        }
-        
-        else  {
-            infoBox(paste(
-                rubricsFNB()[2,4]
-            ), icon = icon("calendar-times"), subtitle = "MAE", color = "red", fill = TRUE)
-        }
         
     })
     
     output$FNBmae <- renderInfoBox({
         
+        if (rubricsFNB()$prediction[2] <= rubricsFNB()$threshold[2]) {
+            infoBox(paste(
+                round(metricsFNB()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(metricsFNB()$mae, 2)
+            ), icon = icon("calendar-times"), subtitle = "MAE", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$FNBrmse <- renderInfoBox({
+        
         infoBox(paste(
-            rubricsFNB()[1,4]
+            round(metricsFNB()$rmse, 2)
         ), icon = icon("calendar-times"), subtitle = "RMSE", color = "green", fill = TRUE)
         
     })
@@ -681,8 +718,8 @@ shinyServer(function(input, output) {
         
         metricsScottyts() %>% 
             data.frame(
-                gs_read(for_gs, ws = "rubrics-scottyts") %>% 
-                    select(threshold, point)
+                gs_read(for_gs, ws = "rubrics-sms") %>% 
+                    select(threshold)
             )
         
     })
@@ -782,38 +819,32 @@ shinyServer(function(input, output) {
                                      round(metricsConcretePred()$rsq,2)*100)
                 )
             )
-            
-
+        
+        
     })
     
     output$Concretemae <- renderInfoBox({
         
-        if (rubricsConcrete()[1,2] >= rubricsConcrete()[1,4]) {
-            infoBox(
-                rubricsConcrete()[1,4], 
-                icon = icon("times-circle"),
-                subtitle = "MAE",
-                color = "green", 
-                fill = TRUE)
+        if (rubricsConcrete()$threshold[1] >= rubricsConcrete()$prediction[1]) {
+            infoBox(paste(
+                round(metricsConcretePred()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
         }
         
         else  {
-            infoBox(
-                rubricsConcrete()[1,4], 
-                icon = icon("times-circle"),
-                subtitle = "MAE", 
-                color = "red", 
-                fill = TRUE)
+            infoBox(paste(
+                round(metricsConcretePred()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "red", fill = TRUE)
         }
         
     })
     
     output$Concretersq <- renderInfoBox({
         
-        if (rubricsConcrete()[2,2] < rubricsConcrete()[2,4]) {
+        if (rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
             
             infoBox(paste(
-                rubricsConcrete()[2,4], "%"
+                round(metricsConcretePred()$rsq,2)*100, "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "green", fill = TRUE)
             
         }
@@ -821,12 +852,12 @@ shinyServer(function(input, output) {
         else {
             
             infoBox(paste(
-                rubricsConcrete()[2,4], "%"
+                round(metricsConcretePred()$rsq,2)*100, "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "red", fill = TRUE)
             
         }
         
-
+        
         
     })
     
@@ -864,35 +895,31 @@ shinyServer(function(input, output) {
                 )
             )
         
-
+        
     })
     
     output$ConcreteAnalysismae <- renderInfoBox({
         
-        if (rubricsConcreteAnalysis()[1,2] >= rubricsConcreteAnalysis()[1,4]) {
-            infoBox(
-                rubricsConcreteAnalysis()[1,4]
-                , icon = icon("times-circle"), 
-                subtitle = "MAE", 
-                color = "green", fill = TRUE)
+        if (rubricsConcreteAnalysis()$threshold[1] >= rubricsConcreteAnalysis()$prediction[1]) {
+            infoBox(paste(
+                round(metricsConcreteAnalysis()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
         }
         
         else  {
-            infoBox(
-                rubricsConcreteAnalysis()[1,4],
-                icon = icon("times-circle"),
-                subtitle = "MAE",
-                color = "red", fill = TRUE)
+            infoBox(paste(
+                round(metricsConcreteAnalysis()$mae, 2)
+            ), icon = icon("times-circle"), subtitle = "MAE", color = "red", fill = TRUE)
         }
         
     })
     
     output$ConcreteAnalysisrsq <- renderInfoBox({
         
-        if (rubricsConcreteAnalysis()[2,2] < rubricsConcreteAnalysis()[2,4]) {
+        if (rubricsConcreteAnalysis()$threshold[2] < rubricsConcreteAnalysis()$prediction[2]) {
             
             infoBox(paste(
-                rubricsConcreteAnalysis()[2,4], "%"
+                round(metricsConcreteAnalysis()$rsq,2)*100, "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "green", fill = TRUE)
             
         }
@@ -900,7 +927,7 @@ shinyServer(function(input, output) {
         else {
             
             infoBox(paste(
-                rubricsConcreteAnalysis()[2,4], "%"
+                round(metricsConcreteAnalysis()$rsq,2)*100, "%"
             ), icon = icon("chart-line"), subtitle = "R-Squared", color = "red", fill = TRUE)
             
         }
@@ -913,8 +940,8 @@ shinyServer(function(input, output) {
     
     
     confMatAirline <- reactive({
-
-
+        
+        
         
         airlinemetrics <- confusionMatrix(
             submission() %>% 
@@ -940,21 +967,21 @@ shinyServer(function(input, output) {
                                      round(confMatAirline()$byClass[2],2)*100)
                 )
             )
-
+        
         
     })
     
     output$Airlineacc <- renderInfoBox({
         
-        if (rubricsAirline()[1,2] <= rubricsAirline()[1,4]) {
+        if (rubricsAirline()$threshold[1] <= rubricsAirline()$prediction[1]) {
             infoBox(paste(
-                rubricsAirline()[1,4], "%"
+                round(confMatAirline()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsAirline()[1,4], "%"
+                round(confMatAirline()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
         }
         
@@ -962,15 +989,15 @@ shinyServer(function(input, output) {
     
     output$Airlinerecall <- renderInfoBox({
         
-        if (rubricsAirline()[2,2] <= rubricsAirline()[2,4]) {
+        if (rubricsAirline()$threshold[2] <= rubricsAirline()$prediction[2]) {
             infoBox(paste(
-                rubricsAirline()[2,4], "%"
+                round(confMatAirline()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsAirline()[2,4], "%"
+                round(confMatAirline()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
         }
         
@@ -978,15 +1005,15 @@ shinyServer(function(input, output) {
     
     output$Airlineprec <- renderInfoBox({
         
-        if (rubricsAirline()[3,2] <= rubricsAirline()[3,4]) {
+        if (rubricsAirline()$threshold[3] <= rubricsAirline()$prediction[3]) {
             infoBox(paste(
-                rubricsAirline()[3,4], "%"
+                round(confMatAirline()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsAirline()[3,4], "%"
+                round(confMatAirline()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
         }
         
@@ -994,21 +1021,140 @@ shinyServer(function(input, output) {
     
     output$Airlinespec <- renderInfoBox({
         
-        if (rubricsAirline()[4,2] <= rubricsAirline()[4,4]) {
+        if (rubricsAirline()$threshold[4] <= rubricsAirline()$prediction[4]) {
             infoBox(paste(
-                rubricsAirline()[4,4], "%"
+                round(confMatAirline()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
         }
         
         else  {
             infoBox(paste(
-                rubricsAirline()[4,4], "%"
+                round(confMatAirline()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
         
     })
     
+    # Image Classification ----
+    
+    joined <- reactive({
+        submission() %>% 
+            left_join(y = read_csv("solution/sol_class_img.csv"),by = "id") %>% 
+            setNames(c("id","submission","actual"))
+    }) 
+    
+    confMatIMG_acc <- reactive({
+        
+        IMGmetrics <- confusionMatrix(
+            as.factor(joined()$submission),
+            as.factor(joined()$actual)
+        )
+        
+    })
+    
+    rubricsIMG_acc <- reactive({
+        gs_read(for_gs, ws = "rubrics-imageclass") %>% slice(1) %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = round(confMatIMG_acc()$overall[1],2)*100
+                )
+            )
+        
+    })
+    
+    output$IMGacc <- renderInfoBox({
+        
+        if (rubricsIMG_acc()$threshold[1] <= rubricsIMG_acc()$prediction[1]) {
+            infoBox(paste(
+                round(confMatIMG_acc()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatIMG_acc()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    confMatIMG <- reactive({
+        
+        IMGmetrics_all <- confusionMatrix(
+            as.factor(joined()$submission),
+            as.factor(joined()$actual),positive = "beach"
+        )
+        
+        IMGmetrics_all <- IMGmetrics_all$byClass %>% as.data.frame() %>% 
+            select(Sensitivity,Specificity,Precision) %>% 
+            setNames(c("Recall","Specificity","Precision")) %>% 
+            tibble::rownames_to_column(var = "Class") %>% 
+            mutate(Class = stringr::str_replace_all(Class,pattern = "Class: ","")) %>% 
+            tidyr::pivot_longer(cols = c("Recall","Specificity","Precision")) %>% 
+            mutate(classname = paste(Class,name,sep = "_"))
+        
+    })
+    
+    rubricsIMG <- reactive({
+        
+        gs_read(for_gs, ws = "rubrics-imageclass") %>% slice(-1) %>% 
+            bind_cols(confMatIMG()) %>% 
+            mutate(goal = ifelse(value*100 > threshold, "pass", "fail"))
+        
+        
+    })
+    
+
+    
+    output$IMGrecall <- renderInfoBox({
+        
+        if (all(rubricsIMG() %>% 
+                filter(name == "Recall") %>% 
+                pull(goal) == "pass")){
+            infoBox(h4("PASS"), 
+                    icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(h4("FAIL"),
+                    icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$IMGprec <- renderInfoBox({
+        
+        if (all(rubricsIMG() %>% 
+                filter(name == "Precision") %>% 
+                pull(goal) == "pass")){
+            infoBox(h4("PASS"),
+                    icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(h4("FAIL"), 
+                    icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$IMGspec <- renderInfoBox({
+        
+        if (all(rubricsIMG() %>% 
+                filter(name == "Specificity") %>% 
+                pull(goal) == "pass")){
+            infoBox(h4("PASS"), 
+                    icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(h4("FAIL"), 
+                    icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
+        }
+        
+        
+    })
     
     # Text output ----
     
@@ -1164,6 +1310,27 @@ shinyServer(function(input, output) {
             
         }
         
+        else if (input$projectype == "Image Classification") {
+
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+
+
+            validate(
+                need(
+                    "label" %in% colnames(submission()),
+                    message = ""
+                )
+            )
+
+            h6(textOutput(outputId = "textIMG"))
+
+        }
+        
         else (NULL)
         
     })
@@ -1174,11 +1341,10 @@ shinyServer(function(input, output) {
         
         temp <- rubricsSMS()$threshold < rubricsSMS()$prediction
         
-        total_point <- rubricsSMS()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1196,11 +1362,10 @@ shinyServer(function(input, output) {
         
         temp <- rubricsFNB()$threshold[2] > rubricsFNB()$prediction[2]
         
-        total_point <- rubricsFNB()$point %>% sum()
         
         if (sum(temp) == 1) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (6 points) on Evaluation Dataset!")
             
         }
         
@@ -1218,11 +1383,10 @@ shinyServer(function(input, output) {
         
         temp <- rubricsScottyClass()$threshold <= rubricsScottyClass()$prediction
         
-        total_point <- rubricsScottyClass()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1239,12 +1403,10 @@ shinyServer(function(input, output) {
     output$textConcretepred <- renderText({
         
         
-        total_point <- rubricsConcrete()$point %>% sum()
-        
         if (rubricsConcrete()$threshold[1] > rubricsConcrete()$prediction[1] &&
             rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (6 points) on Model Evaluation!")
             
         }
         
@@ -1259,14 +1421,13 @@ shinyServer(function(input, output) {
     ## Text Output Scotty Forecasting ----
     
     output$textScottyts <- renderText({
-
+        
         temp <- rubricsScottyts()$threshold > rubricsScottyts()$mae
         
-        total_point <- rubricsScottyts()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Evaluation Dataset!")
             
         }
         
@@ -1283,12 +1444,11 @@ shinyServer(function(input, output) {
     
     output$textConcreteAnalysis <- renderText({
         
-        total_point <- rubricsConcreteAnalysis()$point %>% sum()
         
         if (rubricsConcreteAnalysis()$threshold[1] > rubricsConcreteAnalysis()$prediction[1] &&
             rubricsConcreteAnalysis()$threshold[2] < rubricsConcreteAnalysis()$prediction[2]) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (4) points) on Model Evaluation!")
             
         }
         
@@ -1307,11 +1467,10 @@ shinyServer(function(input, output) {
         
         temp <- rubricsAirline()$threshold < rubricsAirline()$prediction
         
-        total_point <- rubricsAirline()$point %>% sum()
         
         if (sum(temp) == 4) {
             
-            paste0("Congratulation ", input$.username, ", you get full (",total_point, " points) on Model Evaluation!")
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1322,6 +1481,59 @@ shinyServer(function(input, output) {
         }
         
     })
+    
+    ## Text Output Image Classification ----
+    
+    output$textIMG <- renderText({
+        
+        temp <- rubricsIMG()$threshold < rubricsIMG()$value*100
+        temp2 <- rubricsIMG_acc()$threshold < rubricsIMG_acc()$prediction*100
+        
+        if (sum(temp) + sum(temp2) == 10) {
+            
+            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            
+        }
+        
+        else {
+            
+            "Oops! You did very well, but need to improve the model."
+            
+        }
+        
+    })
+    
+    # Additional table ----
+    ## Additional table box for image classification
+    
+    output$confadd <- renderDataTable({
+        if (input$projectype == "Image Classification" & is.null(submission()) == FALSE){
+            confmat_df <- confMatIMG() %>% 
+                select(Class,name,value) %>% 
+                pivot_wider(names_from = name,values_from = value) %>% 
+                mutate(Recall = round(Recall,3),
+                       Specificity = round(Specificity,3),
+                       Precision = round(Precision,3))
+            
+            
+            datatable(data = confmat_df,
+                      caption = "Detailed Metrics for Image Classification Case | Positive level: Beach | You need to reach the minimum 0.7 for every metrics and class to pass",
+                      options = list(dom = "t",
+                                      initComplete = JS(
+                                          "function(settings, json) {",
+                                          "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                          "}"), scrollX = TRUE),
+                      rownames = F) %>%
+                formatStyle(names(confmat_df),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+        }
+        
+        
+    })
+
     
     
     # Leaderboard -----
@@ -1380,7 +1592,7 @@ shinyServer(function(input, output) {
                           round(confMatSMS()$byClass[3],2), 
                           round(confMatSMS()$byClass[2],2),
                           format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
-                )
+            )
             
             sheet_sms <- gs_read(for_gs, ws = "sms")
             
@@ -1448,7 +1660,7 @@ shinyServer(function(input, output) {
                     message = ""
                 )
             )
-        
+            
             
             gs_add_row(ss = for_gs, 
                        ws = "scottyclass", 
@@ -1748,7 +1960,7 @@ shinyServer(function(input, output) {
                             fontSize = "100%")
         }
         
-
+        
         
         else if (input$projectype == "Concrete Analysis" & input$.username != "teamalgoritma") {
             
@@ -1882,10 +2094,97 @@ shinyServer(function(input, output) {
             
         } 
         
+        ## Leaderboard Image Classification ----
+        
+        else if ((input$projectype == "Image Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
+
+            sheet_IMG <- gs_read(for_gs, ws = "image-class")
+
+            sheet_IMG %>%
+                mutate(Name = str_to_title(Name)) %>%
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>%
+                arrange(desc(`Last Submitted`)) %>%
+                dplyr::filter(!duplicated(Name)) %>%
+                dplyr::arrange(desc(`Accuracy`)) %>%
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
+                datatable(caption = 'Table 1: leaderboard scoring | Image Classification.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE),
+                          rownames = T) %>%
+                formatStyle(names(sheet_IMG),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+
+        }
+
+        else if (input$projectype == "Image Classification" & input$.username != "teamalgoritma" ) {
+
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+
+            validate(
+                need(
+                    input$.username != "",
+                    message = ""
+                )
+            )
+
+            gs_add_row(
+                ss = for_gs,
+                ws = "image-class",
+                input = c(input$.username,
+                          round(confMatIMG_acc()$overall[1],2),
+                          ifelse(all(rubricsIMG() %>% 
+                                  filter(name == "Recall") %>% 
+                                  pull(goal) == "pass"),"PASS","FAILL"),
+                          ifelse(all(rubricsIMG() %>% 
+                                         filter(name == "Precision") %>% 
+                                         pull(goal) == "pass"),"PASS","FAILL"),
+                          ifelse(all(rubricsIMG() %>% 
+                                         filter(name == "Specificity") %>% 
+                                         pull(goal) == "pass"),"PASS","FAILL"),
+                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
+            )
+
+            sheet_IMG <- gs_read(for_gs, ws = "image-class")
+
+            sheet_IMG %>%
+                mutate(Name = str_to_title(Name)) %>%
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>%
+                arrange(desc(`Last Submitted`)) %>%
+                dplyr::filter(!duplicated(Name)) %>%
+                dplyr::arrange(desc(`Accuracy`)) %>%
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
+                datatable(caption = 'Table 1: leaderboard scoring | Image Classification.',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE),
+                          rownames = T) %>%
+                formatStyle(names(sheet_IMG),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+
+        }
+        
         else {NULL}
         
     })
     
-
-
+    
+    
 })
