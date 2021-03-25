@@ -19,6 +19,8 @@ Problems:
 
 7.  **Airline13 (Flight Delay)**: The late list..
 
+8.  **Image Classification**: Where were you?  
+
 
 -   The score in Classification task using `Accuracy`, `Recall`, `Precision`,
     and `Specificity` metric evaluation.
