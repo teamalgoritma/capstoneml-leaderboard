@@ -1,144 +1,111 @@
-
-shinyServer(function(input, output) {
+server <- function(input,output,session){
     
-    sever(
-        bg_color = "black"
+    res_auth <- callModule(
+        module = auth_server,
+        id = "auth",
+        check_credentials = check_credentials(credentials)
     )
     
-    # addClass(selector = "body", class = "sidebar-collapse")
+    sever(bg_color = "black")
     
-    shinyURL.server()
-    
-    USER <- reactiveValues(Logged = FALSE)
-    
-    observeEvent({input$.login  
-        input$ENTERKeyPressed}, {
-            if (isTRUE(nrow(credentials %>% 
-                            filter(user == input$.username & pass == input$.password)) != 0)) {
-                USER$Logged <- TRUE
-            } else {
-                show("message")
-                output$message = renderText("Invalid user name or password")
-                delay(2000, hide("message", anim = TRUE, animType = "fade"))
-            }
-        }
-    )
-    
-    output$app = renderUI(
-        if (!isTRUE(USER$Logged)) {
+    output$app <- renderUI({
+        
+        fluidPage(
+            includeCSS(path = "css/main.css"),
+            includeCSS(path = "css/shinydashboard.css"),
+            # Dashboard Page ----
+            
             fluidRow(
                 
+                # First box, menu input ----
                 
-                tags$script(
-                    '$(document).on("keyup", function(e) {
-            if(e.keyCode == 13){Shiny.onInputChange("ENTERKeyPressed", Math.random());}
-        });'
+                box(
+                    title = "Menu Input",
+                    width = 2,
+                    h6(
+                        strong(
+                            paste0("Hi, ", str_to_title(res_auth$user), ".")
+                        )
+                    ),
+                    h6("Please read the following guidance:"),
+                    hr(),
+                    h6("1. Make sure you validate your model before uploading your work!"),
+                    h6("2. Submit your submission file"),
+                    h6("3. Each participant can only submit", strong(" 3 times!"), "per day"), 
+                    h6("4. If you are satisfied enough with the result, don't forget to send your report .Rmd and the submission file to",
+                       strong("classroom")),
+                    
+                    hr(),
+                    
+                    # textInput(
+                    #   inputId = "name",
+                    #   label = "Input your name"
+                    # ),
+                    
+                    selectInput(
+                        inputId = "projectype",
+                        label = "Choose Your Project: ",
+                        choices = c("FNB", 
+                                    "Scotty Time Series", 
+                                    "Scotty Classification", 
+                                    "SMS", 
+                                    "Concrete Prediction",
+                                    "Concrete Analysis",
+                                    "Airline Classification", 
+                                    "Image Classification"
+                        ), 
+                        selected = "SMS"
+                    ),
+                    
+                    
+                    fileInput(inputId = "FileName",
+                              label = "Upload Submission File",
+                              multiple = TRUE, 
+                              accept= ".csv"),
+                    
+                    hr(),
+                    h6("Click the Reset button first, if you want to see the other project's leaderboard"),
+                    
+                    actionButton(inputId = "reset",
+                                 label = "Reset Input")
                 ),
                 
-                column(width=4, offset = 4,
-                       wellPanel(id = "login",
-                                 textInput(".username", "Username:"),
-                                 passwordInput(".password", "Password:"),
-                                 div(actionButton(".login", "Log in"), style="text-align: center;")
-                       ),
-                       textOutput("message")
-                ))
-        } else {
-            
-            fluidPage(
-                includeCSS(path = "css/main.css"),
-                includeCSS(path = "css/shinydashboard.css"),
-                # Dashboard Page ----
+                # Second box, metrics evaluation output ----
                 
-                fluidRow(
+                box(
+                    title = "Model Performance",
+                    width = 5,
+                    h6("The", "green value box", "means you success to achive the metrics, The red are otherwise."),
+                    hr(),
+                    uiOutput(outputId = "metric"),
+                    uiOutput(outputId = "text"),
+                    dataTableOutput(outputId = "confadd")
                     
-                    # First box, menu input ----
+                    # if (input$projectype == "Image Classification"){
+                    #     dataTableOutput(outputId = "addconf")
+                    # }
+                ),
+                
+                # Third box, leaderboard score ----
+                
+                box(
+                    title = "Leaderboard Score",
+                    width = 5,
+                    h6("Find out your current rank, here!"),
+                    hr(),
+                    h6("1. The score in Classification task using", strong("Accuracy"), strong("Recall"), strong("Precision"), strong("Specificity"), "metric evaluation."),
+                    h6("2. The score in Forecasting task using", strong("MAE"),  "metric evaluation."),
+                    h6("3. The score in Regression task using", strong("MAE"), "and", strong("R-Squared")),
+                    dataTableOutput(
+                        outputId = "board")
                     
-                    box(
-                        title = "Menu Input",
-                        width = 2,
-                        h6(
-                            strong(
-                                paste0("Hi, ", str_to_title(input$.username), ".")
-                            )
-                        ),
-                        h6("Please read the following guidance:"),
-                        hr(),
-                        h6("1. Make sure you validate your model before uploading your work!"),
-                        h6("2. Submit your submission file"),
-                        h6("3. Each participant can only submit", strong(" 3 times!"), "per day"), 
-                        h6("4. If you are satisfied enough with the result, don't forget to send your report .Rmd and the submission file to",
-                           strong("classroom")),
-                        
-                        hr(),
-                        
-                        # textInput(
-                        #   inputId = "name",
-                        #   label = "Input your name"
-                        # ),
-                        
-                        selectInput(
-                            inputId = "projectype",
-                            label = "Choose Your Project: ",
-                            choices = c("FNB", 
-                                        "Scotty Time Series", 
-                                        "Scotty Classification", 
-                                        "SMS", 
-                                        "Concrete Prediction",
-                                        "Concrete Analysis",
-                                        "Airline Classification", 
-                                        "Image Classification"
-                            ), 
-                            selected = "SMS"
-                        ),
-                        
-                        
-                        fileInput(inputId = "FileName",
-                                  label = "Upload Submission File",
-                                  multiple = TRUE, 
-                                  accept= ".csv"),
-                        
-                        hr(),
-                        h6("Click the Reset button first, if you want to see the other project's leaderboard"),
-                        
-                        actionButton(inputId = "reset",
-                                     label = "Reset Input")
-                    ),
-                    
-                    # Second box, metrics evaluation output ----
-                    
-                    box(
-                        title = "Model Performance",
-                        width = 5,
-                        h6("The", "green value box", "means you success to achive the metrics, The red are otherwise."),
-                        hr(),
-                        uiOutput(outputId = "metric"),
-                        uiOutput(outputId = "text"),
-                        dataTableOutput(outputId = "confadd")
-                        
-                        # if (input$projectype == "Image Classification"){
-                        #     dataTableOutput(outputId = "addconf")
-                        # }
-                    ),
-                    
-                    # Third box, leaderboard score ----
-                    
-                    box(
-                        title = "Leaderboard Score",
-                        width = 5,
-                        h6("Find out your current rank, here!"),
-                        hr(),
-                        h6("1. The score in Classification task using", strong("Accuracy"), strong("Recall"), strong("Precision"), strong("Specificity"), "metric evaluation."),
-                        h6("2. The score in Forecasting task using", strong("MAE"),  "metric evaluation."),
-                        h6("3. The score in Regression task using", strong("MAE"), "and", strong("R-Squared")),
-                        dataTableOutput(
-                            outputId = "board")
-                        
-                    )
                 )
             )
-        }
-    )
+        )
+        
+        
+    })
+    
     
     # Submission reactivity ----
     
@@ -449,7 +416,10 @@ shinyServer(function(input, output) {
     
     rubricsSMS <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-sms") %>% 
+        # gs_read(for_gs, ws = "rubrics-sms") %>% 
+        data.frame(metrics = c("accuracy","recall","precision","specificity"),
+                   threshold = c(80,80,90,85),
+                   point = c(2,2,2,2)) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(confMatSMS()$overall[1],2)*100, 
@@ -465,7 +435,7 @@ shinyServer(function(input, output) {
     
     output$SMSacc <- renderInfoBox({
         
-        if (rubricsSMS()$threshold[1] <= rubricsSMS()$prediction[1]) {
+        if (rubricsSMS()$threshold[1] < rubricsSMS()$prediction[1]) {
             infoBox(paste(
                 round(confMatSMS()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
@@ -481,7 +451,7 @@ shinyServer(function(input, output) {
     
     output$SMSrecall <- renderInfoBox({
         
-        if (rubricsSMS()$threshold[2] <= rubricsSMS()$prediction[2]) {
+        if (rubricsSMS()$threshold[2] < rubricsSMS()$prediction[2]) {
             infoBox(paste(
                 round(confMatSMS()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
@@ -497,7 +467,7 @@ shinyServer(function(input, output) {
     
     output$SMSprec <- renderInfoBox({
         
-        if (rubricsSMS()$threshold[3] <= rubricsSMS()$prediction[3]) {
+        if (rubricsSMS()$threshold[3] < rubricsSMS()$prediction[3]) {
             infoBox(paste(
                 round(confMatSMS()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
@@ -513,7 +483,7 @@ shinyServer(function(input, output) {
     
     output$SMSspec <- renderInfoBox({
         
-        if (rubricsSMS()$threshold[4] <= rubricsSMS()$prediction[4]) {
+        if (rubricsSMS()$threshold[4] < rubricsSMS()$prediction[4]) {
             infoBox(paste(
                 round(confMatSMS()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
@@ -541,7 +511,12 @@ shinyServer(function(input, output) {
     
     rubricsScottyClass <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-scottyclass") %>% 
+        # gs_read(for_gs, ws = "rubrics-scottyclass") %>% 
+        data.frame(
+            metrics = c("accuracy","recall","precision","specificity"),
+            threshold = c(75,85,75,70),
+            point = rep(2,4)
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(confMatScotClass()$overall[1],2)*100, 
@@ -556,7 +531,7 @@ shinyServer(function(input, output) {
     output$ScottClassacc <- renderInfoBox({
         
         
-        if (rubricsScottyClass()$threshold[1] <= rubricsScottyClass()$prediction[1]) {
+        if (rubricsScottyClass()$threshold[1] < rubricsScottyClass()$prediction[1]) {
             infoBox(paste(
                 round(confMatScotClass()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
@@ -572,7 +547,7 @@ shinyServer(function(input, output) {
     
     output$ScottClassrecall <- renderInfoBox({
         
-        if (rubricsScottyClass()$threshold[2] <= rubricsScottyClass()$prediction[2]) {
+        if (rubricsScottyClass()$threshold[2] < rubricsScottyClass()$prediction[2]) {
             infoBox(paste(
                 round(confMatScotClass()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
@@ -588,7 +563,7 @@ shinyServer(function(input, output) {
     
     output$ScottClassprec <- renderInfoBox({
         
-        if (rubricsScottyClass()$threshold[3] <= rubricsScottyClass()$prediction[3]) {
+        if (rubricsScottyClass()$threshold[3] < rubricsScottyClass()$prediction[3]) {
             infoBox(paste(
                 round(confMatScotClass()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
@@ -604,7 +579,7 @@ shinyServer(function(input, output) {
     
     output$ScottClassspec <- renderInfoBox({
         
-        if (rubricsScottyClass()$threshold[4] <= rubricsScottyClass()$prediction[4]) {
+        if (rubricsScottyClass()$threshold[4] < rubricsScottyClass()$prediction[4]) {
             infoBox(paste(
                 round(confMatScotClass()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
@@ -641,7 +616,12 @@ shinyServer(function(input, output) {
     
     rubricsFNB<- reactive({
         
-        gs_read(for_gs, ws = "rubrics-fnb") %>% 
+        # gs_read(for_gs, ws = "rubrics-fnb") %>% 
+        data.frame(
+            metrics = c("rmse","mae"),
+            threshold = c(0,6),
+            point = c(0,6)
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(metricsFNB()$rmse,2), 
@@ -653,7 +633,7 @@ shinyServer(function(input, output) {
     
     output$FNBmae <- renderInfoBox({
         
-        if (rubricsFNB()$prediction[2] <= rubricsFNB()$threshold[2]) {
+        if (rubricsFNB()$prediction[2] < rubricsFNB()$threshold[2]) {
             infoBox(paste(
                 round(metricsFNB()$mae, 2)
             ), icon = icon("times-circle"), subtitle = "MAE", color = "green", fill = TRUE)
@@ -717,10 +697,16 @@ shinyServer(function(input, output) {
     rubricsScottyts <- reactive({
         
         metricsScottyts() %>% 
-            data.frame(
-                gs_read(for_gs, ws = "rubrics-sms") %>% 
-                    select(threshold)
+            bind_cols(
+                data.frame(
+                    # gs_read(for_gs, ws = "rubrics-sms") %>% 
+                    #     select(threshold)
+                    # threshold = c(80,80,90,85)
+                    threshold = c(12,11,10,11),
+                    point = rep(2,4)
+                )
             )
+        
         
     })
     
@@ -812,7 +798,12 @@ shinyServer(function(input, output) {
     
     rubricsConcrete <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-concretepred") %>% 
+        # gs_read(for_gs, ws = "rubrics-concretepred") %>% 
+        data.frame(
+            metrics = c("mae","rsq"),
+            threshold = c(4,90),
+            point = c(3,3)
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(metricsConcretePred()$mae,2), 
@@ -887,7 +878,12 @@ shinyServer(function(input, output) {
     
     rubricsConcreteAnalysis <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-concreteanalysis") %>% 
+        # gs_read(for_gs, ws = "rubrics-concreteanalysis") %>% 
+        data.frame(
+            metrics = c("mae","rsq"),
+            threshold = c(7.5,65),
+            point = c(2,2)
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(metricsConcreteAnalysis()$mae,2), 
@@ -958,7 +954,12 @@ shinyServer(function(input, output) {
     
     rubricsAirline <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-airline") %>% 
+        # gs_read(for_gs, ws = "rubrics-airline") %>% 
+        data.frame(
+            metrics = c("accuracy","recall","precision","specificity"),
+            threshold = c(75,73,70,75),
+            point = rep(2,4)
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = c(round(confMatAirline()$overall[1],2)*100, 
@@ -973,7 +974,7 @@ shinyServer(function(input, output) {
     
     output$Airlineacc <- renderInfoBox({
         
-        if (rubricsAirline()$threshold[1] <= rubricsAirline()$prediction[1]) {
+        if (rubricsAirline()$threshold[1] < rubricsAirline()$prediction[1]) {
             infoBox(paste(
                 round(confMatAirline()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
@@ -989,7 +990,7 @@ shinyServer(function(input, output) {
     
     output$Airlinerecall <- renderInfoBox({
         
-        if (rubricsAirline()$threshold[2] <= rubricsAirline()$prediction[2]) {
+        if (rubricsAirline()$threshold[2] < rubricsAirline()$prediction[2]) {
             infoBox(paste(
                 round(confMatAirline()$byClass[1], 2)*100, "%"
             ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
@@ -1005,7 +1006,7 @@ shinyServer(function(input, output) {
     
     output$Airlineprec <- renderInfoBox({
         
-        if (rubricsAirline()$threshold[3] <= rubricsAirline()$prediction[3]) {
+        if (rubricsAirline()$threshold[3] < rubricsAirline()$prediction[3]) {
             infoBox(paste(
                 round(confMatAirline()$byClass[3], 2)*100, "%"
             ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
@@ -1021,7 +1022,7 @@ shinyServer(function(input, output) {
     
     output$Airlinespec <- renderInfoBox({
         
-        if (rubricsAirline()$threshold[4] <= rubricsAirline()$prediction[4]) {
+        if (rubricsAirline()$threshold[4] < rubricsAirline()$prediction[4]) {
             infoBox(paste(
                 round(confMatAirline()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
@@ -1054,7 +1055,12 @@ shinyServer(function(input, output) {
     })
     
     rubricsIMG_acc <- reactive({
-        gs_read(for_gs, ws = "rubrics-imageclass") %>% slice(1) %>% 
+        # gs_read(for_gs, ws = "rubrics-imageclass") %>% 
+        data.frame(
+            metrics = "accuracy",
+            threshold = 75,
+            point = 1
+        ) %>% 
             bind_cols(
                 data.frame(
                     "prediction" = round(confMatIMG_acc()$overall[1],2)*100
@@ -1065,7 +1071,7 @@ shinyServer(function(input, output) {
     
     output$IMGacc <- renderInfoBox({
         
-        if (rubricsIMG_acc()$threshold[1] <= rubricsIMG_acc()$prediction[1]) {
+        if (rubricsIMG_acc()$threshold[1] < rubricsIMG_acc()$prediction[1]) {
             infoBox(paste(
                 round(confMatIMG_acc()$overall[1], 2)*100, "%"
             ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
@@ -1098,14 +1104,22 @@ shinyServer(function(input, output) {
     
     rubricsIMG <- reactive({
         
-        gs_read(for_gs, ws = "rubrics-imageclass") %>% slice(-1) %>% 
+        # gs_read(for_gs, ws = "rubrics-imageclass") %>% 
+        #     slice(-1) %>% 
+        data.frame(
+            metrics = c("beach_Recall","beach_Specificity","beach_Precision",
+                        "forest_Recall","forest_Specificity","forest_Precision",
+                        "mountain_Recall","mountain_Specificity","mountain_Precision"),
+            threshold = c(rep(70,9)),
+            point = c(rep(1,9))
+        ) %>% 
             bind_cols(confMatIMG()) %>% 
             mutate(goal = ifelse(value*100 > threshold, "pass", "fail"))
         
         
     })
     
-
+    
     
     output$IMGrecall <- renderInfoBox({
         
@@ -1311,24 +1325,24 @@ shinyServer(function(input, output) {
         }
         
         else if (input$projectype == "Image Classification") {
-
+            
             validate(
                 need(
                     input$FileName != "",
                     message = ""
                 )
             )
-
-
+            
+            
             validate(
                 need(
                     "label" %in% colnames(submission()),
                     message = ""
                 )
             )
-
+            
             h6(textOutput(outputId = "textIMG"))
-
+            
         }
         
         else (NULL)
@@ -1344,7 +1358,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1365,7 +1379,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 1) {
             
-            paste("Congratulation", input$.username, ", you get full (6 points) on Evaluation Dataset!")
+            paste("Congratulation", res_auth$user, ", you get full (6 points) on Evaluation Dataset!")
             
         }
         
@@ -1386,7 +1400,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1406,7 +1420,7 @@ shinyServer(function(input, output) {
         if (rubricsConcrete()$threshold[1] > rubricsConcrete()$prediction[1] &&
             rubricsConcrete()$threshold[2] < rubricsConcrete()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (6 points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (6 points) on Model Evaluation!")
             
         }
         
@@ -1427,7 +1441,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Evaluation Dataset!")
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Evaluation Dataset!")
             
         }
         
@@ -1448,7 +1462,7 @@ shinyServer(function(input, output) {
         if (rubricsConcreteAnalysis()$threshold[1] > rubricsConcreteAnalysis()$prediction[1] &&
             rubricsConcreteAnalysis()$threshold[2] < rubricsConcreteAnalysis()$prediction[2]) {
             
-            paste("Congratulation", input$.username, ", you get full (4) points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (4) points) on Model Evaluation!")
             
         }
         
@@ -1470,7 +1484,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) == 4) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1491,7 +1505,7 @@ shinyServer(function(input, output) {
         
         if (sum(temp) + sum(temp2) == 10) {
             
-            paste("Congratulation", input$.username, ", you get full (8 points) on Model Evaluation!")
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Model Evaluation!")
             
         }
         
@@ -1519,10 +1533,10 @@ shinyServer(function(input, output) {
             datatable(data = confmat_df,
                       caption = "Detailed Metrics for Image Classification Case | Positive level: Beach | You need to reach the minimum 0.7 for every metrics and class to pass",
                       options = list(dom = "t",
-                                      initComplete = JS(
-                                          "function(settings, json) {",
-                                          "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                                          "}"), scrollX = TRUE),
+                                     initComplete = JS(
+                                         "function(settings, json) {",
+                                         "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                         "}"), scrollX = TRUE),
                       rownames = F) %>%
                 formatStyle(names(confmat_df),
                             backgroundColor = "black",
@@ -1533,16 +1547,16 @@ shinyServer(function(input, output) {
         
         
     })
-
+    
     
     
     # Leaderboard -----
     # Leaderboard SMS Classification ----
     
     output$board <- renderDataTable({
-        if ((input$projectype == "SMS" & is.null(submission())) | input$.username == "teamalgoritma") {
+        if ((input$projectype == "SMS" & is.null(submission())) | res_auth$user == "teamalgoritma") {
             
-            sheet_sms <- gs_read(for_gs, ws = "sms")
+            sheet_sms <- read_sheet(ss = sss,sheet = "sms")
             
             sheet_sms %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1567,7 +1581,7 @@ shinyServer(function(input, output) {
             
         }
         
-        else if (input$projectype == "SMS" & input$.username != "teamalgoritma" ) {
+        else if (input$projectype == "SMS" & res_auth$user != "teamalgoritma" ) {
             
             validate(
                 need(
@@ -1578,23 +1592,31 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
             
-            gs_add_row(
-                ss = for_gs, 
-                ws = "sms", 
-                input = c(input$.username, 
-                          round(confMatSMS()$overall[1],2),
-                          round(confMatSMS()$byClass[1],2),
-                          round(confMatSMS()$byClass[3],2), 
-                          round(confMatSMS()$byClass[2],2),
-                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
-            )
+            # gs_add_row(
+            #     ss = for_gs, 
+            #     ws = "sms", 
+            #     input = c(res_auth$user, 
+            #               round(confMatSMS()$overall[1],2),
+            #               round(confMatSMS()$byClass[1],2),
+            #               round(confMatSMS()$byClass[3],2), 
+            #               round(confMatSMS()$byClass[2],2),
+            #               format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
+            # )
             
-            sheet_sms <- gs_read(for_gs, ws = "sms")
+            sheet_append(ss = sss,sheet = "sms",
+                         data = data.frame(Name = res_auth$user, 
+                                           Accuracy = as.numeric(round(confMatSMS()$overall[1],2)),
+                                           Recall = as.numeric(round(confMatSMS()$byClass[1],2)),
+                                           Precision = as.numeric(round(confMatSMS()$byClass[3],2)), 
+                                           Specificity = as.numeric(round(confMatSMS()$byClass[2],2)),
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            
+            sheet_sms <- read_sheet(ss = sss,sheet = "sms")
             
             sheet_sms %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -1621,8 +1643,8 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Scotty Classification ----
         
-        else if ((input$projectype == "Scotty Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
+        else if ((input$projectype == "Scotty Classification" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_scottyclass <- read_sheet(ss = sss,sheet = "scottyclass")
             sheet_scottyclass %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1645,7 +1667,7 @@ shinyServer(function(input, output) {
                             fontSize = "100%")
         }
         
-        else if (input$projectype == "Scotty Classification" & input$.username != "teamalgoritma") {
+        else if (input$projectype == "Scotty Classification" & res_auth$user != "teamalgoritma") {
             
             validate(
                 need(
@@ -1656,22 +1678,22 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
             
             
-            gs_add_row(ss = for_gs, 
-                       ws = "scottyclass", 
-                       input = c(input$.username, 
-                                 round(confMatScotClass()$overall[1],2),
-                                 round(confMatScotClass()$byClass[1],2),
-                                 round(confMatScotClass()$byClass[3],2),
-                                 round(confMatScotClass()$byClass[2],2),
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            sheet_append(ss = sss, 
+                         sheet = "scottyclass", 
+                         data = data.frame(Name = res_auth$user, 
+                                           Accuracy = round(confMatScotClass()$overall[1],2),
+                                           Recall = round(confMatScotClass()$byClass[1],2),
+                                           Precision = round(confMatScotClass()$byClass[3],2),
+                                           Specificity = round(confMatScotClass()$byClass[2],2),
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             
-            sheet_scottyclass <- gs_read(for_gs, ws = "scottyclass")
+            sheet_scottyclass <- read_sheet(ss = sss,sheet = "scottyclass")
             sheet_scottyclass %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1697,8 +1719,8 @@ shinyServer(function(input, output) {
         
         ## Leaderboard FNB Forecasting ----
         
-        else if ((input$projectype == "FNB" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_fnb <- gs_read(for_gs, ws = "fnb")
+        else if ((input$projectype == "FNB" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_fnb <- read_sheet(ss = sss,sheet = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1721,7 +1743,7 @@ shinyServer(function(input, output) {
                             fontSize = "100%")
         }
         
-        else if (input$projectype == "FNB" & input$.username != "teamalgoritma") {
+        else if (input$projectype == "FNB" & res_auth$user != "teamalgoritma") {
             
             validate(
                 need(
@@ -1732,17 +1754,17 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
             
-            gs_add_row(ss = for_gs,
-                       ws = "fnb",
-                       input = c(input$.username,
-                                 round(metricsFNB()$mae,2),
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
-            sheet_fnb <- gs_read(for_gs, ws = "fnb")
+            sheet_append(ss = sss,
+                         sheet = "fnb",
+                         data = data.frame(Name = res_auth$user,
+                                           `MAE Score` = round(metricsFNB()$mae,2),
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            sheet_fnb <- read_sheet(ss = sss,sheet = "fnb")
             sheet_fnb %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1769,8 +1791,8 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Scotty Forecasting ----
         
-        else if ((input$projectype == "Scotty Time Series" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
+        else if ((input$projectype == "Scotty Time Series" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_scottyts <- read_sheet(ss = sss,sheet = "scottyts")
             sheet_scottyts %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1793,7 +1815,7 @@ shinyServer(function(input, output) {
                             fontSize = "100%")
         }
         
-        else if (input$projectype == "Scotty Time Series" & input$.username != "teamalgoritma") {
+        else if (input$projectype == "Scotty Time Series" & res_auth$user != "teamalgoritma") {
             
             validate(
                 need(
@@ -1804,7 +1826,7 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
@@ -1817,16 +1839,16 @@ shinyServer(function(input, output) {
             #                }
             #              })
             
-            gs_add_row(ss = for_gs,
-                       ws = "scottyts",
-                       input = c(input$.username,
-                                 round(rubricsScottyts()$mae[1],2), 
-                                 round(rubricsScottyts()$mae[2],2), 
-                                 round(rubricsScottyts()$mae[3],2), 
-                                 round(rubricsScottyts()$mae[4],2), 
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta") , "%a, %b-%d %X %Y")))
+            sheet_append(ss = sss,
+                         sheet = "scottyts",
+                         data = data.frame(Name = res_auth$user,
+                                           sxk97 = round(rubricsScottyts()$mae[1],2), 
+                                           sxk9e = round(rubricsScottyts()$mae[2],2), 
+                                           sxk9s = round(rubricsScottyts()$mae[3],2), 
+                                           `all area` = round(rubricsScottyts()$mae[4],2), 
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta") , "%a, %b-%d %X %Y")))
             
-            sheet_scottyts <- gs_read(for_gs, ws = "scottyts")
+            sheet_scottyts <- read_sheet(ss = sss,sheet = "scottyts")
             sheet_scottyts %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1853,8 +1875,8 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Concrete Prediction ----
         
-        else if ((input$projectype == "Concrete Prediction" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
+        else if ((input$projectype == "Concrete Prediction" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_concreterm <- read_sheet(ss = sss,sheet = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1879,7 +1901,7 @@ shinyServer(function(input, output) {
         
         
         
-        else if (input$projectype == "Concrete Prediction" & input$.username != "teamalgoritma") {
+        else if (input$projectype == "Concrete Prediction" & res_auth$user != "teamalgoritma") {
             
             validate(
                 need(
@@ -1890,7 +1912,7 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
@@ -1903,13 +1925,13 @@ shinyServer(function(input, output) {
             #                }
             #              })
             
-            gs_add_row(ss = for_gs, 
-                       ws = "concreterm",
-                       input = c(input$.username, 
-                                 round(metricsConcretePred()$mae,2),
-                                 round(metricsConcretePred()$rsq,2)*100, 
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
-            sheet_concreterm <- gs_read(for_gs, ws = "concreterm")
+            sheet_append(ss = sss, 
+                         sheet = "concreterm",
+                         data = data.frame(Name = res_auth$user, 
+                                           `MAE Score` = round(metricsConcretePred()$mae,2),
+                                           `R-square` = round(metricsConcretePred()$rsq,2)*100, 
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            sheet_concreterm <- read_sheet(ss = sss,sheet = "concreterm")
             sheet_concreterm %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1936,8 +1958,8 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Concrete Analysis ----
         
-        else if ((input$projectype == "Concrete Analysis" & is.null(submission())) | input$.username == "teamalgoritma") {
-            sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
+        else if ((input$projectype == "Concrete Analysis" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_concreteanalysis <- read_sheet(ss = sss,sheet = "concreteanalysis")
             sheet_concreteanalysis %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -1962,7 +1984,7 @@ shinyServer(function(input, output) {
         
         
         
-        else if (input$projectype == "Concrete Analysis" & input$.username != "teamalgoritma") {
+        else if (input$projectype == "Concrete Analysis" & res_auth$user != "teamalgoritma") {
             
             validate(
                 need(
@@ -1973,19 +1995,19 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
             
-            gs_add_row(ss = for_gs, 
-                       ws = "concreteanalysis",
-                       input = c(input$.username, 
-                                 round(metricsConcretePred()$mae,2),
-                                 round(metricsConcretePred()$rsq,2)*100, 
-                                 format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            sheet_append(ss = sss, 
+                         sheet = "concreteanalysis",
+                         data = data.frame(Name = res_auth$user, 
+                                           `MAE Score` = round(metricsConcretePred()$mae,2),
+                                           `R-square` = round(metricsConcretePred()$rsq,2)*100, 
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
             
-            sheet_concreteanalysis <- gs_read(for_gs, ws = "concreteanalysis")
+            sheet_concreteanalysis <- read_sheet(ss = sss,sheet = "concreteanalysis")
             sheet_concreteanalysis %>% 
                 mutate(Name = str_to_title(Name)) %>% 
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -2015,9 +2037,9 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Airline Classification ----
         
-        else if ((input$projectype == "Airline Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
+        else if ((input$projectype == "Airline Classification" & is.null(submission())) | res_auth$user == "teamalgoritma") {
             
-            sheet_airline <- gs_read(for_gs, ws = "airlineclass")
+            sheet_airline <- read_sheet(ss = sss,sheet = "airlineclass")
             
             sheet_airline %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -2042,7 +2064,7 @@ shinyServer(function(input, output) {
             
         }
         
-        else if (input$projectype == "Airline Classification" & input$.username != "teamalgoritma" ) {
+        else if (input$projectype == "Airline Classification" & res_auth$user != "teamalgoritma" ) {
             
             validate(
                 need(
@@ -2053,23 +2075,23 @@ shinyServer(function(input, output) {
             
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
             
-            gs_add_row(
-                ss = for_gs, 
-                ws = "airlineclass", 
-                input = c(input$.username, 
-                          round(confMatAirline()$overall[1],2),
-                          round(confMatAirline()$byClass[1],2),
-                          round(confMatAirline()$byClass[3],2), 
-                          round(confMatAirline()$byClass[2],2),
-                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
+            sheet_append(
+                ss = sss, 
+                sheet = "airlineclass", 
+                data = data.frame(Name = res_auth$user, 
+                                  Accuracy = round(confMatAirline()$overall[1],2),
+                                  Recall = round(confMatAirline()$byClass[1],2),
+                                  Precision = round(confMatAirline()$byClass[3],2), 
+                                  Specificity = round(confMatAirline()$byClass[2],2),
+                                  `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
             )
             
-            sheet_airline <- gs_read(for_gs, ws = "airlineclass")
+            sheet_airline <- read_sheet(ss = sss,sheet = "airlineclass")
             
             sheet_airline %>% 
                 mutate(Name = str_to_title(Name)) %>% 
@@ -2096,10 +2118,10 @@ shinyServer(function(input, output) {
         
         ## Leaderboard Image Classification ----
         
-        else if ((input$projectype == "Image Classification" & is.null(submission())) | input$.username == "teamalgoritma") {
-
-            sheet_IMG <- gs_read(for_gs, ws = "image-class")
-
+        else if ((input$projectype == "Image Classification" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            
+            sheet_IMG <- read_sheet(ss = sss,sheet = "image-class")
+            
             sheet_IMG %>%
                 mutate(Name = str_to_title(Name)) %>%
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -2120,44 +2142,44 @@ shinyServer(function(input, output) {
                             background = "black",
                             target = "row",
                             fontSize = "100%")
-
+            
         }
-
-        else if (input$projectype == "Image Classification" & input$.username != "teamalgoritma" ) {
-
+        
+        else if (input$projectype == "Image Classification" & res_auth$user != "teamalgoritma" ) {
+            
             validate(
                 need(
                     input$FileName != "",
                     message = ""
                 )
             )
-
+            
             validate(
                 need(
-                    input$.username != "",
+                    res_auth$user != "",
                     message = ""
                 )
             )
-
-            gs_add_row(
-                ss = for_gs,
-                ws = "image-class",
-                input = c(input$.username,
-                          round(confMatIMG_acc()$overall[1],2),
-                          ifelse(all(rubricsIMG() %>% 
-                                  filter(name == "Recall") %>% 
-                                  pull(goal) == "pass"),"PASS","FAILL"),
-                          ifelse(all(rubricsIMG() %>% 
-                                         filter(name == "Precision") %>% 
-                                         pull(goal) == "pass"),"PASS","FAILL"),
-                          ifelse(all(rubricsIMG() %>% 
-                                         filter(name == "Specificity") %>% 
-                                         pull(goal) == "pass"),"PASS","FAILL"),
-                          format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
+            
+            sheet_append(
+                ss = sss,
+                sheet = "image-class",
+                data = data.frame(Name = res_auth$user,
+                                  Accuracy = round(confMatIMG_acc()$overall[1],2),
+                                  Recall = ifelse(all(rubricsIMG() %>% 
+                                                          filter(name == "Recall") %>% 
+                                                          pull(goal) == "pass"),"PASS","FAILL"),
+                                  Precision = ifelse(all(rubricsIMG() %>% 
+                                                             filter(name == "Precision") %>% 
+                                                             pull(goal) == "pass"),"PASS","FAILL"),
+                                  Specificity = ifelse(all(rubricsIMG() %>% 
+                                                               filter(name == "Specificity") %>% 
+                                                               pull(goal) == "pass"),"PASS","FAILL"),
+                                  `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y"))
             )
-
-            sheet_IMG <- gs_read(for_gs, ws = "image-class")
-
+            
+            sheet_IMG <- read_sheet(ss = sss,sheet = "image-class")
+            
             sheet_IMG %>%
                 mutate(Name = str_to_title(Name)) %>%
                 mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
@@ -2178,7 +2200,7 @@ shinyServer(function(input, output) {
                             background = "black",
                             target = "row",
                             fontSize = "100%")
-
+            
         }
         
         else {NULL}
@@ -2186,5 +2208,6 @@ shinyServer(function(input, output) {
     })
     
     
-    
-})
+}
+
+
