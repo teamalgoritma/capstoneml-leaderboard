@@ -9,16 +9,26 @@ library(tidymodels)
 library(tidyverse)
 library(lubridate)
 library(shinythemes)
-library(googlesheets)
+#library(googlesheets)
+library(googlesheets4)
 library(MLmetrics)
 library(shinyjs)
-library(shinyURL)
+# library(shinyURL)
 library(sever)
+library(shinymanager)
+library(shinybusy)
+ 
+gs4_auth(path = "xxxxxxx0u82qhj1enu72.apps.googleusercontent.com.json",
+         email = "email@algorit.ma",
+         cache = ".secrets")
 
-gs_auth(token = "token/googlesheets_token.RDS")
-list <- gs_ls()
-for_gs <- gs_key(x = "1VcxbaYM-QT1umwSlCIDNpbiWjr48AXzNRD8uWt9KElg")
+sss <- "1VxxxxxwSlCIDNpbiWxxxxxxx"
+credentials <- googlesheets4::read_sheet(ss = sss,sheet = "user")
 
-credentials <- gs_read(for_gs, ws = 'user')
+set_labels(language = "en",
+           "Please authenticate" = "Algoritma Capstone ML")
 
+source("ui.R")
+source("server.R")
 
+shinyApp(ui,server)

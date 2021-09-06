@@ -1,18 +1,26 @@
-
-shinyUI(
-    fluidPage(
-        
-        use_sever(),
-        
-        theme = shinytheme("cyborg"),
-        # Add Javascript ----
-        tags$head(
-            tags$link(rel="stylesheet", type="text/css",href="style.css"),
-            tags$script(type="text/javascript", src = "md5.js"),
-            tags$script(type="text/javascript", src = "passwdInputBinding.js"),
-            tags$style(
-                HTML(
-                    '.skin-blue .main-header .navbar {
+ui <- fluidPage(
+    
+    auth_ui(
+        id = "auth",
+        tags_bottom = tags$div(
+            tags$p("Please contact your mentor if you haven't received username and password or having trouble logging in")),
+        lan = use_language("en"),
+        status = "danger"
+    ),
+    
+    useSever(),
+    
+    theme = shinytheme("cyborg"),
+    
+    
+    # Add Javascript ----
+    tags$head(
+        tags$link(rel="stylesheet", type="text/css",href="style.css"),
+        tags$script(type="text/javascript", src = "md5.js"),
+        tags$script(type="text/javascript", src = "passwdInputBinding.js"),
+        tags$style(
+            HTML(
+                '.skin-blue .main-header .navbar {
                       background-color: #04121a;
         }
         
@@ -97,23 +105,22 @@ shinyUI(
           }
 
         '
-                )
             )
-        ),
-        useShinyjs(),
-        
-        titlePanel(
-            "Algoritma Capstone Machine Learning",
-            tags$head(
-                tags$link(rel = "icon", type = "image/png", href = "logo_algo.png"),
-                tags$title("Algoritma Capstone Machine Learning")
-            )
-        ),
-        br(),
-        br(),
-        
-        # UI output ----
-        
-        uiOutput("app")
-    )
+        )
+    ),
+    useShinyjs(),
+    
+    titlePanel(
+        "Algoritma Capstone Machine Learning",
+        tags$head(
+            tags$link(rel = "icon", type = "image/png", href = "logo_algo.png"),
+            tags$title("Algoritma Capstone Machine Learning")
+        )
+    ),
+    br(),
+    br(),
+    
+    # UI output ----
+    
+    uiOutput("app")
 )
