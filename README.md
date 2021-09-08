@@ -21,6 +21,8 @@ Problems:
 
 8.  **Image Classification**: Where were you?  
 
+9.  **Cyberbully Text Classification**: Why people so mean?  
+
 
 -   The score in Classification task using `Accuracy`, `Recall`, `Precision`,
     and `Specificity` metric evaluation.
@@ -32,7 +34,7 @@ Problems:
 Feature:
 ========
 
-![](img/pic3.png)
+![](img/pic4.PNG)
 
 ![](img/pic1.png)
 

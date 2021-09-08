@@ -17,12 +17,12 @@ library(shinyjs)
 library(sever)
 library(shinymanager)
 library(shinybusy)
- 
-gs4_auth(path = "xxxxxxx0u82qhj1enu72.apps.googleusercontent.com.json",
+
+gs4_auth(path = "xxx",
          email = "email@algorit.ma",
          cache = ".secrets")
 
-sss <- "1VxxxxxwSlCIDNpbiWxxxxxxx"
+sss <- "1VcxbaYM-QT1umwSlCIDNpbiWjr48AXzNRD8uWt9KElg"
 credentials <- googlesheets4::read_sheet(ss = sss,sheet = "user")
 
 set_labels(language = "en",
