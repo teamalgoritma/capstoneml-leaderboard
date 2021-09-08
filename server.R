@@ -36,12 +36,7 @@ server <- function(input,output,session){
                        strong("classroom")),
                     
                     hr(),
-                    
-                    # textInput(
-                    #   inputId = "name",
-                    #   label = "Input your name"
-                    # ),
-                    
+                   
                     selectInput(
                         inputId = "projectype",
                         label = "Choose Your Project: ",
@@ -52,9 +47,10 @@ server <- function(input,output,session){
                                     "Concrete Prediction",
                                     "Concrete Analysis",
                                     "Airline Classification", 
+                                    "Cyberbully Text Classification",
                                     "Image Classification"
                         ), 
-                        selected = "SMS"
+                        selected = "FNB"
                     ),
                     
                     
@@ -177,6 +173,37 @@ server <- function(input,output,session){
             tagList(temp)
             
             
+            
+        }
+        
+        else if (input$projectype == "Cyberbully Text Classification") {
+            
+            validate(
+                need(
+                    submission() != "",
+                    message = "Waiting your submission..."
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "bully" %in% colnames(submission()),
+                    message = "Hm, may you choose the wrong project?"
+                )
+            )
+            
+            metrics <- list(outputId = c("CyberClassacc","CyberClassrecall","CyberClassprec","CyberClassspec"), 
+                            width = c(6,6,6,6))  
+            
+            temp <- list()
+            
+            for (i in seq_len(lengths(metrics)[1])) {
+                temp[[i]] <- infoBoxOutput(outputId = lapply(metrics[[1]][i], FUN = "print"), 
+                                           width = lapply(metrics[[2]][i], FUN = "print"))
+            }
+            
+            tagList(temp)
             
         }
         
@@ -492,6 +519,100 @@ server <- function(input,output,session){
         else  {
             infoBox(paste(
                 round(confMatSMS()$byClass[2], 2)*100, "%"
+            ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
+        }
+        
+        
+    })
+    
+    # Cyberbully text Spam ----
+    
+    confMatCyber <- reactive({
+        smsmetrics <- confusionMatrix(
+            submission()$bully %>% as.factor(),
+            read_csv("solution/sol_class_cyberbully.csv") %$% bully %>% as.factor(),
+            positive = "yes"
+        )
+        
+    })
+    
+    rubricsCyber <- reactive({
+        
+        data.frame(metrics = c("accuracy","recall","precision","specificity"),
+                   threshold = c(80,80,75,75),
+                   point = c(2,2,2,2)) %>% 
+            bind_cols(
+                data.frame(
+                    "prediction" = c(round(confMatCyber()$overall[1],2)*100, 
+                                     round(confMatCyber()$byClass[1],2)*100,
+                                     round(confMatCyber()$byClass[3],2)*100,
+                                     round(confMatCyber()$byClass[2],2)*100)
+                ) 
+            )
+        
+        
+        
+    })
+    
+    output$CyberClassacc <- renderInfoBox({
+        
+        if (rubricsCyber()$threshold[1] < rubricsCyber()$prediction[1]) {
+            infoBox(paste(
+                round(confMatCyber()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatCyber()$overall[1], 2)*100, "%"
+            ), icon = icon("bullseye"), subtitle = "Accuracy", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$CyberClassrecall <- renderInfoBox({
+        
+        if (rubricsCyber()$threshold[2] < rubricsCyber()$prediction[2]) {
+            infoBox(paste(
+                round(confMatCyber()$byClass[1], 2)*100, "%"
+            ), icon = icon("search-plus"), subtitle = "Recall", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatCyber()$byClass[1], 2)*100, "%"
+            ), icon = icon("search-plus"), subtitle = "Recall", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$CyberClassprec <- renderInfoBox({
+        
+        if (rubricsCyber()$threshold[3] < rubricsCyber()$prediction[3]) {
+            infoBox(paste(
+                round(confMatCyber()$byClass[3], 2)*100, "%"
+            ), icon = icon("key"), subtitle = "Precision", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatCyber()$byClass[3], 2)*100, "%"
+            ), icon = icon("key"), subtitle = "Precision", color = "red", fill = TRUE)
+        }
+        
+    })
+    
+    output$CyberClassspec <- renderInfoBox({
+        
+        if (rubricsCyber()$threshold[4] < rubricsCyber()$prediction[4]) {
+            infoBox(paste(
+                round(confMatCyber()$byClass[2], 2)*100, "%"
+            ), icon = icon("search-minus"), subtitle = "Specificity", color = "green", fill = TRUE)
+        }
+        
+        else  {
+            infoBox(paste(
+                round(confMatCyber()$byClass[2], 2)*100, "%"
             ), icon = icon("search-minus"), subtitle = "Specificity", color = "red", fill = TRUE)
         }
         
@@ -1198,6 +1319,27 @@ server <- function(input,output,session){
             
         }
         
+        else if (input$projectype == "Cyberbully Text Classification") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            
+            validate(
+                need(
+                    "bully" %in% colnames(submission()),
+                    message = ""
+                )
+            )
+            
+            h6(textOutput(outputId = "textCyber"))
+            
+        }
+        
         else if (input$projectype == "FNB") {
             
             validate(
@@ -1354,6 +1496,27 @@ server <- function(input,output,session){
     output$textSMS <- renderText({
         
         temp <- rubricsSMS()$threshold < rubricsSMS()$prediction
+        
+        
+        if (sum(temp) == 4) {
+            
+            paste("Congratulation", res_auth$user, ", you get full (8 points) on Model Evaluation!")
+            
+        }
+        
+        else {
+            
+            "Oops! You did very well, but need to improve the model."
+            
+        }
+        
+    })
+    
+    ## Text Output Cyberbully Text Classification ----
+    
+    output$textCyber <- renderText({
+        
+        temp <- rubricsCyber()$threshold < rubricsCyber()$prediction
         
         
         if (sum(temp) == 4) {
@@ -1710,6 +1873,82 @@ server <- function(input,output,session){
                                              "}"), scrollX = TRUE), 
                           rownames = T) %>% 
                 formatStyle(names(sheet_scottyclass),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+            
+        }
+        
+        ## Leaderboard Cyberbully Text Classification ----
+        
+        else if ((input$projectype == "Cyberbully Text Classification" & is.null(submission())) | res_auth$user == "teamalgoritma") {
+            sheet_cyberclass <- read_sheet(ss = sss,sheet = "cyberbully")
+            sheet_cyberclass %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(desc(`Recall`)) %>% 
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
+                datatable(caption = 'Table 1: leaderboard scoring | Cyberbully Text Classification. ',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_cyberclass),
+                            backgroundColor = "black",
+                            background = "black",
+                            target = "row",
+                            fontSize = "100%")
+        }
+        
+        else if (input$projectype == "Cyberbully Text Classification" & res_auth$user != "teamalgoritma") {
+            
+            validate(
+                need(
+                    input$FileName != "",
+                    message = ""
+                )
+            )
+            
+            validate(
+                need(
+                    res_auth$user != "",
+                    message = ""
+                )
+            )
+            
+            
+            sheet_append(ss = sss, 
+                         sheet = "cyberbully", 
+                         data = data.frame(Name = res_auth$user, 
+                                           Accuracy = round(confMatCyber()$overall[1],2),
+                                           Recall = round(confMatCyber()$byClass[1],2),
+                                           Precision = round(confMatCyber()$byClass[3],2),
+                                           Specificity = round(confMatCyber()$byClass[2],2),
+                                           `Last Submitted` = format(Sys.time() %>% lubridate::with_tz(tzone = "Asia/Jakarta"), "%a, %b-%d %X %Y")))
+            
+            sheet_cyberclass <- read_sheet(ss = sss,sheet = "cyberbully")
+            sheet_cyberclass %>% 
+                mutate(Name = str_to_title(Name)) %>% 
+                mutate(`Last Submitted` = as.POSIXct(gsub(x = `Last Submitted`, pattern = " (AM|PM) ", replacement = " "),
+                                                     format = "%a, %b-%d %X %Y")) %>% 
+                arrange(desc(`Last Submitted`)) %>% 
+                dplyr::filter(!duplicated(Name)) %>% 
+                dplyr::arrange(desc(`Recall`)) %>% 
+                mutate(`Last Submitted` = format(`Last Submitted`, "%a, %b-%d %X %Y")) %>%
+                datatable(caption = 'Table 1: leaderboard scoring | Cyberbully Text Classification. ',
+                          options = list(dom = "t",
+                                         initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+                                             "}"), scrollX = TRUE), 
+                          rownames = T) %>% 
+                formatStyle(names(sheet_cyberclass),
                             backgroundColor = "black",
                             background = "black",
                             target = "row",
